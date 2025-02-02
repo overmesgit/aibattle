@@ -7,6 +7,7 @@ import (
 	"aibattle/pages/auth"
 	"aibattle/pages/battle"
 	"aibattle/pages/index"
+	"aibattle/pages/leader"
 	"aibattle/pages/middleware"
 	"aibattle/pages/prompt"
 	"context"
@@ -49,6 +50,7 @@ func main() {
 			se.Router.POST("/signup", auth.SignUp(app, templ))
 			se.Router.GET("/login", auth.Login(app, templ))
 			se.Router.POST("/login", auth.Login(app, templ))
+			se.Router.GET("/leader", leader.List(app, templ))
 
 			se.Router.GET("/{$}", index.Index(app, templ))
 
