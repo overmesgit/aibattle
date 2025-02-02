@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" fill="#ffffff"/>
+  
+  <!-- Grid -->
+  <path d="M0 8 L32 8 M0 16 L32 16 M0 24 L32 24" stroke="#cccccc" stroke-width="1"/>
+  <path d="M8 0 L8 32 M16 0 L16 32 M24 0 L24 32" stroke="#cccccc" stroke-width="1"/>
+  
+  <!-- Units -->
+  <!-- Blue team unit (circle) -->
+  <circle cx="12" cy="12" r="4" fill="#3B82F6"/>
+  <text x="12" y="14" fill="white" text-anchor="middle" font-size="6">W</text>
+  
+  <!-- Red team unit (circle) -->
+  <circle cx="20" cy="20" r="4" fill="#EF4444"/>
+  <text x="20" y="22" fill="white" text-anchor="middle" font-size="6">M</text>
+</svg>
