@@ -4,6 +4,7 @@ import (
 	"aibattle/pages"
 	"bytes"
 	"compress/gzip"
+	"github.com/samber/lo"
 	"html/template"
 	"io"
 	"log"
@@ -65,47 +66,57 @@ type BattleView struct {
 	ID          string
 	Status      string
 	ScoreChange float64
+	Opponent    string
 	Date        types.DateTime
 }
 
-type IndexData struct {
+type ListData struct {
 	User    *core.Record
 	Battles []BattleView
 }
 
-func Index(app *pocketbase.PocketBase, templ *template.Template) func(e *core.RequestEvent) error {
+func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 
-		// Get all battles for the current user
-		battles, err := app.FindRecordsByFilter(
-			"battle_result",
-			"user = {:userId}",
-			"-created",
-			100,
-			0,
-			dbx.Params{"userId": e.Auth.Id},
-		)
+		battles := []*core.Record{}
+		err := app.RecordQuery("battle_result").
+			Join("LEFT JOIN", "users", dbx.NewExp("opponent = users.id")).
+			AndWhere(dbx.HashExp{"user": e.Auth.Id}).
+			OrderBy("created DESC").
+			Limit(100).
+			All(&battles)
 		if err != nil {
 			return err
+		}
+
+		// Expand opponent relations to get names
+		expErr := app.ExpandRecords(battles, []string{"opponent"}, nil)
+		if len(expErr) > 0 {
+			return lo.Values(expErr)[0]
 		}
 
 		battleViews := make([]BattleView, len(battles))
 		for i, battle := range battles {
 			view := BattleView{
-				ID:   battle.Id,
-				Date: battle.GetDateTime("created"),
+				ID:          battle.Id,
+				Date:        battle.GetDateTime("created"),
+				ScoreChange: battle.GetFloat("score_change"),
 			}
-			view.ScoreChange = battle.GetFloat("score_change")
 			if view.ScoreChange > 0 {
 				view.Status = "won"
 			} else {
 				view.Status = "lost"
 			}
 
+			// Get opponent name from expanded relation
+			if opponent := battle.ExpandedOne("opponent"); opponent != nil {
+				view.Opponent = opponent.GetString("name")
+			}
+
 			battleViews[i] = view
 		}
 
-		data := &IndexData{
+		data := &ListData{
 			User:    e.Auth,
 			Battles: battleViews,
 		}

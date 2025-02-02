@@ -2113,6 +2113,14 @@ html {
   }
 }
 
+.badge-lg {
+  height: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  padding-left: 0.688rem;
+  padding-right: 0.688rem;
+}
+
 .btm-nav-xs > *:where(.active) {
   border-top-width: 1px;
 }
@@ -2233,6 +2241,10 @@ html {
 
 .min-h-screen {
   min-height: 100vh;
+}
+
+.w-1\/2 {
+  width: 50%;
 }
 
 .w-1\/4 {
@@ -2394,16 +2406,8 @@ html {
   padding: 2rem;
 }
 
-.p-24 {
-  padding: 6rem;
-}
-
-.p-48 {
-  padding: 12rem;
-}
-
-.p-64 {
-  padding: 16rem;
+.p-1 {
+  padding: 0.25rem;
 }
 
 .px-4 {

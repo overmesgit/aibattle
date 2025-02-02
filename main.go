@@ -59,7 +59,7 @@ func main() {
 				se.Router.GET("/prompt/{id}", prompt.DetailedPrompt(app, templ)),
 				se.Router.POST("/prompt/{id}", prompt.UpdatePrompt(app, templ)),
 				se.Router.POST("/prompt/{id}/activate", prompt.ActivatePrompt(app, templ)),
-				se.Router.GET("/battle", battle.Index(app, templ)),
+				se.Router.GET("/battle", battle.List(app, templ)),
 				se.Router.GET("/battle/{id}", battle.Detailed(app, templ)),
 			)
 
