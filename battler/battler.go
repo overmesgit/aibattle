@@ -29,25 +29,10 @@ func RunBattleTask(app *pocketbase.PocketBase) {
 }
 
 func RunBattle(app *pocketbase.PocketBase) error {
-	records := []*core.Record{}
-	err := app.RecordQuery("prompt").
-		Join("LEFT JOIN", "score", dbx.NewExp("score.user = prompt.user")).
-		AndWhere(dbx.HashExp{"prompt.active": true}).
-		OrderBy("score.updated ASC").
-		Limit(2).
-		All(&records)
-
-	if err != nil {
-		return fmt.Errorf("error fetching active prompts: %w", err)
+	prompt1, prompt2, promptErr := getNextPrompt(app)
+	if promptErr != nil {
+		return promptErr
 	}
-
-	// Need at least 2 prompts for battle
-	if len(records) < 2 {
-		return errors.New("not enough records")
-	}
-	prompt1, prompt2 := records[0], records[1]
-
-	// Fetch scores for both prompts
 	user1Score, user2Score, scoreErr := getScores(
 		app, prompt1.GetString("user"), prompt2.GetString("user"),
 	)
@@ -72,46 +57,88 @@ func RunBattle(app *pocketbase.PocketBase) error {
 		return fmt.Errorf("error updating scores: %w", err)
 	}
 
-	compressedRes, err := MarshalGzip(result.Turns)
-	if err != nil {
-		return fmt.Errorf("error comporessing result: %w", err)
+	battle, batErr := saveBattle(app, result)
+	if batErr != nil {
+		return batErr
 	}
 
-	// Create battle record
-	collection, err := app.FindCollectionByNameOrId("battle")
-	if err != nil {
-		return fmt.Errorf("error finding battle collection: %w", err)
-	}
-	battle := core.NewRecord(collection)
-	battle.Set("output", compressedRes)
-	if err := app.Save(battle); err != nil {
-		return fmt.Errorf("error saving battle: %w", err)
+	resErr := saveBattleResults(
+		app, user1Score, oldScore1, prompt1, prompt2, battle, user2Score, oldScore2,
+	)
+	if resErr != nil {
+		return resErr
 	}
 
+	return nil
+
+}
+
+func saveBattleResults(
+	app *pocketbase.PocketBase, user1Score *core.Record, oldScore1 float64, prompt1 *core.Record,
+	prompt2 *core.Record, battle *core.Record, user2Score *core.Record, oldScore2 float64,
+) error {
 	// Create battle result records for both players
-	battleResultColl, err := app.FindCollectionByNameOrId("battle_result")
-	if err != nil {
-		return fmt.Errorf("error finding battle collection: %w", err)
+	battleResultColl, findErr := app.FindCollectionByNameOrId("battle_result")
+	if findErr != nil {
+		return fmt.Errorf("error finding battle collection: %w", findErr)
 	}
 	scoreChange := user1Score.GetFloat("score") - oldScore1
 	result1 := createBattleResult(
 		prompt1, prompt2.GetString("user"), battle.Id, scoreChange,
 		battleResultColl,
 	)
-	if err := app.Save(result1); err != nil {
-		return fmt.Errorf("error saving battle result 1: %w", err)
+	if res1Err := app.Save(result1); res1Err != nil {
+		return fmt.Errorf("error saving battle result 1: %w", res1Err)
 	}
 
 	scoreChange2 := user2Score.GetFloat("score") - oldScore2
 	result2 := createBattleResult(
 		prompt2, prompt1.GetString("user"), battle.Id, scoreChange2, battleResultColl,
 	)
-	if err := app.Save(result2); err != nil {
-		return fmt.Errorf("error saving battle result 2: %w", err)
+	if res2Err := app.Save(result2); res2Err != nil {
+		return fmt.Errorf("error saving battle result 2: %w", res2Err)
+	}
+	return nil
+}
+
+func saveBattle(app *pocketbase.PocketBase, result game.Result) (*core.Record, error) {
+	compressedRes, zipErr := MarshalGzip(result.Turns)
+	if zipErr != nil {
+		return nil, fmt.Errorf("error comporessing result: %w", zipErr)
 	}
 
-	return nil
+	// Create battle record
+	collection, colErr := app.FindCollectionByNameOrId("battle")
+	if colErr != nil {
+		return nil, fmt.Errorf("error finding battle collection: %w", colErr)
+	}
+	battle := core.NewRecord(collection)
+	battle.Set("output", compressedRes)
+	if batErr := app.Save(battle); batErr != nil {
+		return nil, fmt.Errorf("error saving battle: %w", batErr)
+	}
+	return battle, nil
+}
 
+func getNextPrompt(app *pocketbase.PocketBase) (*core.Record, *core.Record, error) {
+	var records []*core.Record
+	err := app.RecordQuery("prompt").
+		Join("LEFT JOIN", "score", dbx.NewExp("score.user = prompt.user")).
+		AndWhere(dbx.HashExp{"prompt.active": true}).
+		OrderBy("score.updated ASC").
+		Limit(2).
+		All(&records)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("error fetching active prompts: %w", err)
+	}
+
+	// Need at least 2 prompts for battle
+	if len(records) < 2 {
+		return nil, nil, errors.New("not enough records")
+	}
+	prompt1, prompt2 := records[0], records[1]
+	return prompt1, prompt2, nil
 }
 
 func updateUserScores(
