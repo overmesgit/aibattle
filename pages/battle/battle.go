@@ -2,8 +2,13 @@ package battle
 
 import (
 	"aibattle/pages"
-	"github.com/pocketbase/pocketbase/tools/types"
+	"bytes"
+	"compress/gzip"
 	"html/template"
+	"io"
+	"log"
+
+	"github.com/pocketbase/pocketbase/tools/types"
 
 	"github.com/pocketbase/dbx"
 
@@ -12,24 +17,55 @@ import (
 )
 
 type Data struct {
-	User *core.Record
+	User   *core.Record
+	Battle *core.Record
+	Output string
 }
 
 func Detailed(
 	app *pocketbase.PocketBase, templ *template.Template,
 ) func(e *core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
+		id := e.Request.PathValue("id")
+
+		battle, err := app.FindRecordById("battle", id)
+		if err != nil {
+			return err
+		}
+
+		outputString := battle.GetString("output")
+
+		reader := bytes.NewReader([]byte(outputString))
+		gzReader, err := gzip.NewReader(reader)
+		if err != nil {
+			return err
+		}
+		defer func(gzReader *gzip.Reader) {
+			err := gzReader.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}(gzReader)
+
+		decompressed, err := io.ReadAll(gzReader)
+		if err != nil {
+			return err
+		}
+		output := string(decompressed)
 		data := &Data{
-			User: e.Auth,
+			User:   e.Auth,
+			Battle: battle,
+			Output: output,
 		}
 		return pages.Render(e, templ, "battle.gohtml", data)
 	}
 }
 
 type BattleView struct {
-	ID     string
-	Status string
-	Date   types.DateTime
+	ID          string
+	Status      string
+	ScoreChange float64
+	Date        types.DateTime
 }
 
 type IndexData struct {
@@ -40,29 +76,10 @@ type IndexData struct {
 func Index(app *pocketbase.PocketBase, templ *template.Template) func(e *core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 
-		// Get all prompts for the current user
-		prompts, err := app.FindRecordsByFilter(
-			"prompt",
-			"user = {:userId}",
-			"-created",
-			1000,
-			0,
-			dbx.Params{"userId": e.Auth.Id},
-		)
-		if err != nil {
-			return err
-		}
-
-		// Create a set of prompt IDs
-		promptIds := make(map[string]struct{})
-		for _, prompt := range prompts {
-			promptIds[prompt.Id] = struct{}{}
-		}
-
 		// Get all battles for the current user
 		battles, err := app.FindRecordsByFilter(
-			"battle",
-			"prompt1.user = {:userId} || prompt2.user = {:userId}",
+			"battle_result",
+			"user = {:userId}",
 			"-created",
 			100,
 			0,
@@ -78,11 +95,8 @@ func Index(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Re
 				ID:   battle.Id,
 				Date: battle.GetDateTime("created"),
 			}
-			winner := battle.GetString("winner")
-			myPrompt1 := promptIds[battle.GetString("prompt1")] == struct{}{}
-			myPrompt2 := promptIds[battle.GetString("prompt2")] == struct{}{}
-			if (winner == "prompt1" && myPrompt1) ||
-				(winner == "prompt2" && myPrompt2) {
+			view.ScoreChange = battle.GetFloat("score_change")
+			if view.ScoreChange > 0 {
 				view.Status = "won"
 			} else {
 				view.Status = "lost"

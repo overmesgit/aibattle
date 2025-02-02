@@ -75,7 +75,8 @@ func CalculateDistance(pos1, pos2 Position) float64 {
 }
 
 const (
-	TeamA = iota + 1
+	Draw = iota
+	TeamA
 	TeamB
 )
 

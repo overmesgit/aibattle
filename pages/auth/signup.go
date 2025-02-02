@@ -2,11 +2,12 @@ package auth
 
 import (
 	"aibattle/pages"
-	"github.com/pocketbase/pocketbase"
-	"github.com/pocketbase/pocketbase/core"
 	"html/template"
 	"net/http"
 	"time"
+
+	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type SignUpData struct {
@@ -37,16 +38,32 @@ func SignUp(app *pocketbase.PocketBase, templ *template.Template) func(e *core.R
 			if saveErr != nil {
 				data.Error = saveErr.Error()
 			} else {
-				expiration := time.Now().Add(3 * 24 * time.Hour)
-				token, err := newUser.NewAuthToken()
+				scoreCollection, err := app.FindCollectionByNameOrId("score")
 				if err != nil {
 					return err
 				}
-				cookie := http.Cookie{Name: "token", Value: token, Expires: expiration}
-				http.SetCookie(e.Response, &cookie)
-				return e.Redirect(http.StatusFound, "/")
+
+				score := core.NewRecord(scoreCollection)
+				score.Set("score", 1000)
+				score.Set("user", newUser.Id)
+
+				if saveErr := app.Save(score); saveErr != nil {
+					return saveErr
+				}
+				return redirectWithCookie(e, newUser)
 			}
 		}
 		return pages.Render(e, templ, "signup.gohtml", data)
 	}
+}
+
+func redirectWithCookie(e *core.RequestEvent, newUser *core.Record) error {
+	expiration := time.Now().Add(3 * 24 * time.Hour)
+	token, err := newUser.NewAuthToken()
+	if err != nil {
+		return err
+	}
+	cookie := http.Cookie{Name: "token", Value: token, Expires: expiration}
+	http.SetCookie(e.Response, &cookie)
+	return e.Redirect(http.StatusFound, "/")
 }

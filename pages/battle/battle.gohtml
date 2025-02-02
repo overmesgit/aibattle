@@ -8,6 +8,7 @@
       import {html} from 'htm/preact';
       import {useState} from 'preact/hooks';
 
+      const gameData = JSON.parse({{.Output}});
       const CELL_SIZE = 32;
       const GRID_SIZE = 20;
 
@@ -92,7 +93,6 @@
             left: ${getOffset(unit.position.x, 1)}px;
             top: ${getOffset(unit.position.y, 1)}px;`;
           const idToUnit = new Map(currentState.units?.map(unit => [unit.id, unit]));
-          console.log(idToUnit)
 
           return html`
               <div>
@@ -157,7 +157,7 @@
           return html`
               <div class="bg-white rounded-lg shadow p-4 mb-4">
                   <h2 class="text-lg font-bold mb-2">Action Log</h2>
-                  <div class="h-82 overflow-y-auto">
+                  <div class="h-82 overflow-y-auto w-96">
                       ${wonTeam}
                       ${currentState.actions?.map((action, index) => html`
                           <div key=${index} class="mb-2">
@@ -202,18 +202,7 @@
       `;
 
       const BattleViewer = () => {
-          const [gameData, setGameData] = useState([]);
           const [currentTurn, setCurrentTurn] = useState(0);
-
-          const handleFileUpload = (event) => {
-              const file = event.target.files[0];
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                  setGameData(JSON.parse(e.target.result));
-                  setCurrentTurn(0);
-              };
-              reader.readAsText(file);
-          };
 
           const currentState = gameData[currentTurn] || {units: [], actions: []};
 
@@ -224,14 +213,6 @@
                   </div>
 
                   <div class="p-4 bg-gray-50">
-                      <div class="mb-4">
-                          <input
-                                  type="file"
-                                  onChange=${handleFileUpload}
-                                  class="w-full p-2 border rounded"
-                                  accept=".json"
-                          />
-                      </div>
                       ${gameData.length > 0 && html`
                           <${Controls} currentTurn=${currentTurn} gameData=${gameData}
                                        setCurrentTurn=${setCurrentTurn}/>

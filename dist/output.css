@@ -2321,10 +2321,6 @@ html {
   border-radius: 0.5rem;
 }
 
-.border {
-  border-width: 1px;
-}
-
 .border-b {
   border-bottom-width: 1px;
 }
@@ -2386,10 +2382,6 @@ html {
   stroke: currentColor;
 }
 
-.p-2 {
-  padding: 0.5rem;
-}
-
 .p-4 {
   padding: 1rem;
 }
@@ -2400,6 +2392,18 @@ html {
 
 .p-8 {
   padding: 2rem;
+}
+
+.p-24 {
+  padding: 6rem;
+}
+
+.p-48 {
+  padding: 12rem;
+}
+
+.p-64 {
+  padding: 16rem;
 }
 
 .px-4 {

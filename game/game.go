@@ -69,7 +69,12 @@ func GetTurnAction(team int, state []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -158,11 +163,11 @@ func RunGame() (Result, error) {
 				if act == nil || act.Action == "" {
 					continue
 				}
-				log.Printf(
-					"Team %d Unit %s %v performs %v %v\n", unit.Team, unit.Type, unit.Position,
-					act.Action,
-					act.Target,
-				)
+				//log.Printf(
+				//	"Team %d Unit %s %v performs %v %v\n", unit.Team, unit.Type, unit.Position,
+				//	act.Action,
+				//	act.Target,
+				//)
 				err := updateGameState(&gameState, unit, act)
 				if err != nil {
 					log.Println(err)

@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"github.com/Masterminds/sprig"
 	"github.com/pocketbase/pocketbase/core"
 	"html/template"
 	"os"
@@ -23,7 +24,7 @@ func Render(e *core.RequestEvent, templ *template.Template, filename string, dat
 }
 
 func ParseTemplates() (*template.Template, error) {
-	templ := template.New("")
+	templ := template.New("").Funcs(sprig.FuncMap())
 
 	// Parse all .html files in templates directory
 	err := filepath.Walk(

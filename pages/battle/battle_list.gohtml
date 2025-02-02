@@ -15,7 +15,7 @@
                     <div class="flex justify-between items-center">
                       <div class="flex-1">
                         <div class="font-semibold">Battle #{{.ID}}</div>
-                        <div class="text-sm text-base-content/70">{{.Date}}</div>
+                        <div class="text-sm text-base-content/70">{{.Date | date "2006-01-02 15:04:05"}}</div>
                       </div>
                         {{if eq .Status "won"}}
                           <div class="badge badge-primary">Won</div>
