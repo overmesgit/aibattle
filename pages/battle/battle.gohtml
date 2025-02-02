@@ -1,0 +1,257 @@
+{{template "layout.gohtml" .}}
+{{define "title"}}Battle viewer{{end}}
+{{define "head"}}{{end}}
+{{define "content"}}
+  <script type="module">
+      import {css} from '@emotion/css';
+      import {render} from 'preact';
+      import {html} from 'htm/preact';
+      import {useState} from 'preact/hooks';
+
+      const CELL_SIZE = 32;
+      const GRID_SIZE = 20;
+
+      const getOffset = (pos, off) => (pos + off) * CELL_SIZE
+
+      const gridStyle = css`
+        width: ${getOffset(GRID_SIZE, 2)}px;
+        height: ${getOffset(GRID_SIZE, 2)}px;`;
+
+      const typeSymbol = {
+          warrior: '⚔️',
+          mage: '🔮',
+          healer: '💚',
+          rogue: '🗡️'
+      };
+      const teamColor = {
+          1: "bg-blue-500",
+          2: "bg-red-500",
+      }
+      const UnitIcon = ({unit}) => {
+          return html`
+              <div class=${`w-8 h-8 ${teamColor[unit.team]} rounded-full flex items-center justify-center text-white`}>
+                  ${typeSymbol[unit.type]}
+              </div>
+          `;
+      };
+
+      const ActionMarker = ({action, unit}) => {
+          if (!action.target || action.action === "hold") return null;
+
+          const color = "bg-grey-300";
+          const symbol = action.action.includes('attack') ? '⚔️' :
+              action.action.includes('skill') ? '✨' : '⚡';
+          const markerStyle = css`
+          left: ${getOffset(action.target.x, 1)}px;
+          top: ${getOffset(action.target.y, 1)}px;`;
+
+          return html`
+              <div class="absolute z-10 opacity-90 ${markerStyle}">
+                  <div class=${`w-4 h-4 ${color} rounded-full flex items-center justify-center text-white`}>
+                      ${symbol}
+                  </div>
+                  <div class=${`w-4 h-4 ${teamColor[unit.team]} rounded-full flex items-center justify-center text-white`}>
+                      ${typeSymbol[unit.type]}
+                  </div>
+              </div>
+          `;
+      };
+
+      const GridCoordinates = () => html`
+          ${Array.from({length: GRID_SIZE}).map((_, i) => html`
+              <div key=${`numbers-${i}`}>
+                  <div class=${`absolute bg-gray-800 text-white flex items-center justify-center w-8 h-8
+                  ${css` left: ${getOffset(i, 1)}px; top: 0; `}`}>
+                      ${i}
+                  </div>
+                  <div class=${`absolute bg-gray-800 text-white flex items-center justify-center w-8 h-8
+                   ${css` left: 0; top: ${getOffset(i, 1)}px; `}`}>
+                      ${i}
+                  </div>
+              </div>
+          `)}
+      `;
+
+      const linesLength = (GRID_SIZE + 1) * CELL_SIZE;
+      const GridLines = () => html`
+          <div class="absolute" style=${gridStyle}>
+              ${Array.from({length: GRID_SIZE + 1}).map((_, i) => html`
+                  <div key=${`grid-${i}`}>
+                      <div class=${`absolute border-t border-gray-300
+                              ${css` left: 0; top: ${getOffset(i, 1)}px; width: ${linesLength}px; `}`}></div>
+                      <div class=${`absolute border-l border-gray-300
+                              ${css` left: ${getOffset(i, 1)}px; top: 0; height: ${linesLength}px; `}`}></div>
+                  </div>
+              `)}
+          </div>
+      `;
+
+      const BattleGrid = ({currentState}) => {
+
+          const unitStyle = (unit) => css`
+            left: ${getOffset(unit.position.x, 1)}px;
+            top: ${getOffset(unit.position.y, 1)}px;`;
+          const idToUnit = new Map(currentState.units?.map(unit => [unit.id, unit]));
+          console.log(idToUnit)
+
+          return html`
+              <div>
+                  <div class="relative">
+                      <${GridCoordinates}/>
+                      <${GridLines}/>
+                      ${currentState.actions?.map((action, index) =>
+                              action.unit_action.map((act, actIndex) =>
+                                      act && html`
+                                          <${ActionMarker} key=${`action-${index}-${actIndex}`}
+                                                           action=${act}
+                                                           unit=${idToUnit.get(action.unit_id)}/>`
+                              )
+                      )}
+                      ${currentState.units?.map((unit) =>
+                                      unit.hp > 0 && html`
+                                          <div key=${unit.id} class="absolute ${unitStyle(unit)}">
+                                              <${UnitIcon} unit=${unit}/>
+                                          </div>
+                                      `
+                      )}
+                  </div>
+              </div>
+          `;
+      };
+
+      const Controls = ({currentTurn, gameData, setCurrentTurn}) => html`
+          <div class="bg-white rounded-lg shadow p-4 mb-4">
+              <h2 class="text-lg font-bold mb-2">Turn ${currentTurn}</h2>
+              <input
+                      type="range"
+                      min="0"
+                      max=${gameData.length - 1}
+                      value=${currentTurn}
+                      onChange=${(e) => setCurrentTurn(Number(e.target.value))}
+                      class="w-full mb-2"
+              />
+              <div class="flex justify-between">
+                  <button
+                          onClick=${() => setCurrentTurn(t => Math.max(0, t - 1))}
+                          class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
+                          disabled=${currentTurn === 0}
+                  >
+                      Previous
+                  </button>
+                  <button
+                          onClick=${() => setCurrentTurn(t => Math.min(gameData.length - 1, t + 1))}
+                          class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
+                          disabled=${currentTurn === gameData.length - 1}
+                  >
+                      Next
+                  </button>
+              </div>
+          </div>
+      `;
+
+      const ActionLog = ({currentState}) => {
+          let wonTeam = null;
+          if (currentState.type?.startsWith("Team")) {
+              wonTeam = `${currentState.type} WON!`;
+          }
+          return html`
+              <div class="bg-white rounded-lg shadow p-4 mb-4">
+                  <h2 class="text-lg font-bold mb-2">Action Log</h2>
+                  <div class="h-82 overflow-y-auto">
+                      ${wonTeam}
+                      ${currentState.actions?.map((action, index) => html`
+                          <div key=${index} class="mb-2">
+                              ${action.unit_action.map((act, actIndex) => {
+                                  if (!act) return null;
+                                  const targetUnit = currentState.units?.find(
+                                          u => u.position.x === act.target?.x && u.position.y === act.target?.y
+                                  );
+                                  const unit = currentState.units.find((u) => u.id === action.unit_id);
+                                  return html`
+                                      <div key=${actIndex}
+                                           class="text-sm border-b border-gray-100 py-1">
+                                              Team${unit?.team} Unit ${unit?.type}:
+                                          ${act.action}
+                                          ${act.target ? ` to (${act.target.x}, ${act.target.y})${
+                                                  targetUnit ? ` [${targetUnit.type}]` : ''
+                                          }` : ''}
+                                      </div>
+                                  `;
+                              })}
+                          </div>
+                      `)}
+                  </div>
+              </div>
+          `;
+      }
+
+      const UnitStatus = ({currentState}) => html`
+          <div class="bg-white rounded-lg shadow p-4">
+              <h2 class="text-lg font-bold mb-2">Unit Status</h2>
+              <div class="space-y-1">
+                  ${currentState.units?.map((unit) => html`
+                      <div
+                              key=${unit.id}
+                              class=${`text-sm ${unit.hp <= 0 ? 'text-gray-400' : ''}`}
+                      >
+                          Team ${unit.team} ${unit.type}: ${Math.max(0, unit.hp)}/${unit.maxHp} HP
+                      </div>
+                  `)}
+              </div>
+          </div>
+      `;
+
+      const BattleViewer = () => {
+          const [gameData, setGameData] = useState([]);
+          const [currentTurn, setCurrentTurn] = useState(0);
+
+          const handleFileUpload = (event) => {
+              const file = event.target.files[0];
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                  setGameData(JSON.parse(e.target.result));
+                  setCurrentTurn(0);
+              };
+              reader.readAsText(file);
+          };
+
+          const currentState = gameData[currentTurn] || {units: [], actions: []};
+
+          return html`
+              <div class="flex justify-center p-4">
+                  <div class="bg-gray-50 p-4 ${gridStyle}">
+                      <${BattleGrid} currentState=${currentState}/>
+                  </div>
+
+                  <div class="p-4 bg-gray-50">
+                      <div class="mb-4">
+                          <input
+                                  type="file"
+                                  onChange=${handleFileUpload}
+                                  class="w-full p-2 border rounded"
+                                  accept=".json"
+                          />
+                      </div>
+                      ${gameData.length > 0 && html`
+                          <${Controls} currentTurn=${currentTurn} gameData=${gameData}
+                                       setCurrentTurn=${setCurrentTurn}/>
+                      `}
+                      <${ActionLog} currentState=${currentState}/>
+                  </div>
+
+                  <div class="p-4 bg-gray-50">
+                      <${UnitStatus} currentState=${currentState}/>
+                  </div>
+              </div>
+          `;
+      };
+
+      render(html`
+          <${BattleViewer}/>`, document.getElementById("battle"))
+
+  </script>
+
+  <div class="min-h-screen flex justify-center bg-base-200">
+    <div id="battle"></div>
+  </div>
+{{end}}

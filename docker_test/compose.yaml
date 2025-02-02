@@ -1,0 +1,30 @@
+version: "3"
+
+networks:
+  internal_net:
+    internal: true
+  public_net:
+    driver: bridge
+
+services:
+  team_one:
+    image: ${TEAM_ONE}
+    networks:
+      - internal_net
+  team_two:
+    image: ${TEAM_TWO}
+    networks:
+      - internal_net
+
+  proxy:
+    image: nginx
+    networks:
+      - internal_net
+      - public_net
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - team_one
+      - team_two

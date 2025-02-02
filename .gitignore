@@ -1,0 +1,25 @@
+# IDE
+.idea/
+.vscode/
+
+# Build
+/tmp/
+/dist/
+/main
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Runtime data
+/pb_data/
+/pb_migrations/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+*.env

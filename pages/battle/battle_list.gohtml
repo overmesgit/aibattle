@@ -1,0 +1,37 @@
+{{template "layout.gohtml" .}}
+{{define "title"}}Battle viewer{{end}}
+{{define "head"}}{{end}}
+{{define "content"}}
+
+  <div class="min-h-screen p-8 bg-base-200">
+    <div class="container mx-auto">
+      <div class="bg-base-100 rounded-lg shadow-xl p-6">
+        <h2 class="text-2xl font-bold mb-6">Your Battles</h2>
+          {{if .Battles}}
+            <div class="grid gap-4">
+                {{range .Battles}}
+                  <a href="/battle/{{.ID}}"
+                     class="bg-base-200 p-4 rounded-lg hover:bg-base-300 transition duration-200">
+                    <div class="flex justify-between items-center">
+                      <div class="flex-1">
+                        <div class="font-semibold">Battle #{{.ID}}</div>
+                        <div class="text-sm text-base-content/70">{{.Date}}</div>
+                      </div>
+                        {{if eq .Status "won"}}
+                          <div class="badge badge-primary">Won</div>
+                        {{else if eq .Status "lost"}}
+                          <div class="badge badge-error">Lost</div>
+                        {{end}}
+                    </div>
+                  </a>
+                {{end}}
+            </div>
+          {{else}}
+            <div class="text-center py-8 text-base-content/70">
+              No battles found
+            </div>
+          {{end}}
+      </div>
+    </div>
+  </div>
+{{end}}

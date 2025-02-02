@@ -1,0 +1,19 @@
+{{define "navbar"}}
+  <div class="navbar bg-base-100 flex">
+    <div class="flex-none">
+      <a href="/" class="btn btn-ghost normal-case text-xl">Prompt battle</a>
+    </div>
+    <div class="grow">
+      <a href="/prompt" class="btn btn-neutral">Prompt</a>
+      <a href="/battle" class="btn btn-neutral ml-2">Battles</a>
+    </div>
+    <div class="flex-none">
+        {{if .User }}
+          <a href="/logout" class="btn btn-info">Logout</a>
+        {{else}}
+          <a href="/login" class="btn btn-ghost">Login</a>
+          <a href="/signup" class="btn btn-primary">Sign Up</a>
+        {{end}}
+    </div>
+  </div>
+{{end}}

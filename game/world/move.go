@@ -1,0 +1,30 @@
+package world
+
+import "errors"
+
+func (state *GameState) MoveUnit(unit *Unit, target *Position) error {
+	if target == nil {
+		return errors.New("target is nil")
+	}
+
+	// Check boundaries
+	if target.X < 0 || target.X >= state.Width || target.Y < 0 || target.Y >= state.Height {
+		return errors.New("target is out of map range")
+	}
+
+	// Check distance
+	distance := CalculateDistance(unit.Position, *target)
+	if distance > float64(unit.Actions.Move.Distance) {
+		return errors.New("target is out of moving range")
+	}
+
+	// Check if target position is occupied
+	for _, otherUnit := range state.Units {
+		if otherUnit.Position == *target && otherUnit.IsAlive() {
+			return errors.New("target is occupied")
+		}
+	}
+
+	unit.Position = *target
+	return nil
+}

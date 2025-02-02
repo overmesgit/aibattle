@@ -1,0 +1,97 @@
+{{template "layout.gohtml" .}}
+{{define "title"}}Prompt{{end}}
+{{define "head"}}{{end}}
+
+{{define "content"}}
+  <style>
+      .red {
+          color: #f87171;
+      }
+
+    textarea:disabled {
+        opacity: 1 !important;
+        background-color: inherit !important;
+        color: inherit !important;
+    }
+  </style>
+  <div class="flex p-4 pl-8 pr-8">
+    <div class="w-1/4 pr-4">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">Prompts</h2>
+          <ul class="menu">
+            {{range .Prompts}}
+              <li><a href="/prompt/{{.Id}}" {{if eq .Id $.ID}}class="active"{{end}}>{{.GetDateTime "created"}}</a></li>
+            {{end}}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="w-3/4">
+      <form method="POST" class="mb-2 card bg-base-100 shadow-xl">
+        <div class="card-body">
+            {{if .Errors}}
+              <div class="alert alert-error shadow-lg">
+                  {{range .Errors}}
+                    <div class="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg"
+                           class="stroke-current flex-shrink-0 h-6 w-6" fill="none"
+                           viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      <span>{{.}}</span>
+                    </div>
+                  {{end}}
+              </div>
+            {{end}}
+          <h1 class="text-xl">Prompt</h1>
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Input Text</span>
+            </label>
+            <textarea id="prompt-input" name="text"
+                      class="textarea textarea-bordered h-24">{{.Text}}</textarea>
+            <div class="flex justify-end m-1">
+              <div id="chars-length">0/300</div>
+            </div>
+            <script>
+                let promptEl = document.getElementById('prompt-input');
+                let counterEl = document.getElementById('chars-length');
+                const oninput = (curLen) => {
+
+                    counterEl.textContent = `${curLen}/300`;
+                    if (curLen > 300) {
+                        counterEl.classList.add('red');
+                    } else if (curLen < 300) {
+                        counterEl.classList.remove('red');
+                    }
+                }
+                promptEl.oninput = (e) => {
+                    oninput(e.currentTarget.value.length);
+                };
+                oninput(promptEl.textContent.length);
+            </script>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="submit" class="btn btn-primary">Send</button>
+          </div>
+        </div>
+      </form>
+      <form action="/prompt/{{.ID}}/activate" method="POST" class="mt-2 card bg-base-100 shadow-xl" >
+        <div class="card-body">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Output</span>
+            </label>
+            <textarea class="textarea textarea-bordered h-96" disabled>{{.Output}}</textarea>
+          </div>
+          <div class="flex justify-end">
+            <button type="submit" class="btn btn-primary">Activate</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+{{end}}
