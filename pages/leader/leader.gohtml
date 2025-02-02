@@ -14,7 +14,7 @@
             <span class="w-1/4 text-right">Score</span>
           </li>
             {{range $index, $score := .Scores}}
-              <li class="flex justify-between p-2 border-b {{if eq $.User.Id $score.UserID}}bg-blue-300{{end}}">
+              <li class="flex justify-between p-2 border-b {{if and $.User (eq $.User.Id $score.UserID)}}bg-blue-300{{end}}">
                 <span class="w-1/4">{{add $index 1}}</span>
                 <span class="w-1/2">{{$score.Username}}</span>
                 <span class="w-1/4 text-right">{{printf "%.2f" $score.Score}}</span>

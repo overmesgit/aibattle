@@ -19,13 +19,13 @@ import (
 )
 
 func RunBattleTask(app *pocketbase.PocketBase) {
-	//for {
-	err := RunBattle(app)
-	if err != nil {
-		log.Println(err)
+	for {
+		err := RunBattle(app)
+		if err != nil {
+			log.Println(err)
+		}
+		time.Sleep(30 * time.Second)
 	}
-	time.Sleep(10 * time.Second)
-	//}
 }
 
 func RunBattle(app *pocketbase.PocketBase) error {

@@ -25,6 +25,7 @@ func SignUp(app *pocketbase.PocketBase, templ *template.Template) func(e *core.R
 		if e.Request.Method == "POST" {
 			email := e.Request.FormValue("email")
 			password := e.Request.FormValue("password")
+			username := e.Request.FormValue("name")
 			collection, err := app.FindCollectionByNameOrId("users")
 			if err != nil {
 				return err
@@ -33,6 +34,7 @@ func SignUp(app *pocketbase.PocketBase, templ *template.Template) func(e *core.R
 			newUser := core.NewRecord(collection)
 			newUser.SetEmail(email)
 			newUser.SetPassword(password)
+			newUser.Set("name", username)
 
 			saveErr := app.Save(newUser)
 			if saveErr != nil {

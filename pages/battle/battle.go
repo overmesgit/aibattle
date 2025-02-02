@@ -4,12 +4,13 @@ import (
 	"aibattle/pages"
 	"bytes"
 	"compress/gzip"
-	"github.com/samber/lo"
+	"errors"
 	"html/template"
 	"io"
 	"log"
+	"time"
 
-	"github.com/pocketbase/pocketbase/tools/types"
+	"github.com/samber/lo"
 
 	"github.com/pocketbase/dbx"
 
@@ -29,9 +30,21 @@ func Detailed(
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 
-		battle, err := app.FindRecordById("battle", id)
+		battleResult, err := app.FindRecordById("battle_result", id)
 		if err != nil {
 			return err
+		}
+
+		// Load battle relation
+		battleErr := app.ExpandRecord(battleResult, []string{"battle"}, nil)
+		if len(battleErr) > 0 {
+			return errors.New("could not load battle data")
+		}
+
+		// Get the associated battle record
+		battle := battleResult.ExpandedOne("battle")
+		if battle == nil {
+			return errors.New("battle not found")
 		}
 
 		outputString := battle.GetString("output")
@@ -67,7 +80,7 @@ type BattleView struct {
 	Status      string
 	ScoreChange float64
 	Opponent    string
-	Date        types.DateTime
+	Date        time.Time
 }
 
 type ListData struct {
@@ -99,7 +112,7 @@ func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Req
 		for i, battle := range battles {
 			view := BattleView{
 				ID:          battle.Id,
-				Date:        battle.GetDateTime("created"),
+				Date:        battle.GetDateTime("created").Time(),
 				ScoreChange: battle.GetFloat("score_change"),
 			}
 			if view.ScoreChange > 0 {
