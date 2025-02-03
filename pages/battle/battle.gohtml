@@ -171,11 +171,14 @@
                                   return html`
                                       <div key=${actIndex}
                                            class="text-sm border-b border-gray-100 py-1">
-                                              Team${unit?.team} Unit ${unit?.type}:
-                                          ${act.action}
-                                          ${act.target ? ` to (${act.target.y}, ${act.target.x})${
-                                                  targetUnit ? ` [${targetUnit.type}]` : ''
-                                          }` : ''}
+                                              <p>
+                                                  Team${unit?.team} Unit ${unit?.type}:
+                                                  ${act.action}
+                                                  ${act.target ? ` to (${act.target.y}, ${act.target.x})
+                                                  ${targetUnit ? ` [${targetUnit.type}]` : ''
+                                                  }` : ''}
+                                              </p>
+                                          ${act.error ? html`<p class="bg-red-300">${act.error}</p>` : ''}
                                       </div>
                                   `;
                               })}

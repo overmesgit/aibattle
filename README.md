@@ -6,3 +6,5 @@
 * add randomness to battle matching
 * row => col index in battle viewer
 * show draw
+* show current user name
+* deploy to the internet
