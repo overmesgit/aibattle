@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	result, err := prompt.ReplaceGeneratedInRulesTemplate("test")
+	result, err := prompt.AddGeneratedCodeToTheGameTemplate("test")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

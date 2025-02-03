@@ -19,9 +19,11 @@ import (
 )
 
 type Data struct {
-	User   *core.Record
-	Battle *core.Record
-	Output string
+	User     *core.Record
+	Battle   *core.Record
+	Output   string
+	MyTeam   string
+	Opponent string
 }
 
 func Detailed(
@@ -36,7 +38,7 @@ func Detailed(
 		}
 
 		// Load battle relation
-		battleErr := app.ExpandRecord(battleResult, []string{"battle"}, nil)
+		battleErr := app.ExpandRecord(battleResult, []string{"battle", "opponent"}, nil)
 		if len(battleErr) > 0 {
 			return errors.New("could not load battle data")
 		}
@@ -45,6 +47,10 @@ func Detailed(
 		battle := battleResult.ExpandedOne("battle")
 		if battle == nil {
 			return errors.New("battle not found")
+		}
+		opponent := battleResult.ExpandedOne("opponent")
+		if opponent == nil {
+			return errors.New("opponent not found")
 		}
 
 		outputString := battle.GetString("output")
@@ -67,9 +73,11 @@ func Detailed(
 		}
 		output := string(decompressed)
 		data := &Data{
-			User:   e.Auth,
-			Battle: battle,
-			Output: output,
+			User:     e.Auth,
+			Battle:   battle,
+			Output:   output,
+			MyTeam:   battleResult.GetString("team"),
+			Opponent: opponent.GetString("name"),
 		}
 		return pages.Render(e, templ, "battle.gohtml", data)
 	}

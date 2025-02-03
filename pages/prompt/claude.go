@@ -24,7 +24,7 @@ func GetProgram(ctx context.Context, promptID string, prompt string) (string, er
 	}
 
 	// Get the generated code
-	generatedCode, err := ReplaceGeneratedInRulesTemplate(text)
+	generatedCode, err := AddGeneratedCodeToTheGameTemplate(text)
 	if err != nil {
 		return text, err
 	}
@@ -89,7 +89,7 @@ func buildImage(err error, generatedCode string, promptID string) error {
 	return nil
 }
 
-func ReplaceGeneratedInRulesTemplate(txt string) (string, error) {
+func AddGeneratedCodeToTheGameTemplate(txt string) (string, error) {
 	tfile, err := os.ReadFile("game/rules/rules.tmpl")
 	if err != nil {
 		return "", err
@@ -100,6 +100,7 @@ func ReplaceGeneratedInRulesTemplate(txt string) (string, error) {
 	startTag := "<template>"
 	endTag := "</template>"
 	template, err := getContentBetweenTags(content, startTag, endTag)
+
 	if err != nil {
 		return "", err
 	}
@@ -115,7 +116,11 @@ func getContentBetweenTags(content, startTag, endTag string) (string, error) {
 	if startIdx == -1 || endIdx == -1 {
 		return "", fmt.Errorf("tags not found: %s, %s", startTag, endTag)
 	}
-	return content[startIdx:endIdx], nil
+	tagText := content[startIdx:endIdx]
+	if len(tagText) == 0 {
+		return "", fmt.Errorf("text between tags are empty")
+	}
+	return tagText, nil
 }
 
 func CreateMainGoInTmpFolder(tmpDir string, generatedCode string) (string, error) {
@@ -149,16 +154,21 @@ CMD ["./main"]`
 
 func BuildImageInTmpFolder(tmpDir string, promptID string) error {
 	// Build the Docker image
+	log.Printf("Building image in tmp folder %s", tmpDir)
 	imageTag := fmt.Sprintf("ai%s:latest", promptID)
 	cmd := exec.Command("docker", "build", "-t", imageTag, tmpDir)
-	cmd.Stdout = os.Stdout
+	var stdout strings.Builder
+	cmd.Stdout = &stdout
 
 	var stderr strings.Builder
 	cmd.Stderr = &stderr
 
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("failed to build docker image: %v\nstderr: %s", err, stderr.String())
+		return fmt.Errorf(
+			"failed to build docker image: %v\nstderr: %s\noutput: %s", err, stderr.String(),
+			stdout.String(),
+		)
 	}
 
 	return nil

@@ -121,7 +121,8 @@
 
       const Controls = ({currentTurn, gameData, setCurrentTurn}) => html`
           <div class="bg-white rounded-lg shadow p-4 mb-4">
-              <h2 class="text-lg font-bold mb-2">Turn ${currentTurn}</h2>
+              <h2 class="text-lg font-bold mb-2">My {{.MyTeam}}</h2>
+              <h2 class="text-lg font-bold mb-2">Turn ${currentTurn} </h2>
               <input
                       type="range"
                       min="0"
@@ -172,7 +173,7 @@
                                            class="text-sm border-b border-gray-100 py-1">
                                               Team${unit?.team} Unit ${unit?.type}:
                                           ${act.action}
-                                          ${act.target ? ` to (${act.target.x}, ${act.target.y})${
+                                          ${act.target ? ` to (${act.target.y}, ${act.target.x})${
                                                   targetUnit ? ` [${targetUnit.type}]` : ''
                                           }` : ''}
                                       </div>
@@ -211,7 +212,6 @@
                   <div class="bg-gray-50 p-4 ${gridStyle}">
                       <${BattleGrid} currentState=${currentState}/>
                   </div>
-
                   <div class="p-4 bg-gray-50">
                       ${gameData.length > 0 && html`
                           <${Controls} currentTurn=${currentTurn} gameData=${gameData}

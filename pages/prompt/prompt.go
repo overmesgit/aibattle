@@ -148,6 +148,10 @@ func defaultData(
 		data.ID = prompt.Id
 		data.Text = prompt.GetString("text")
 		data.Output = prompt.GetString("output")
+		promptError := prompt.GetString("error")
+		if promptError != "" {
+			data.Errors = []string{promptError}
+		}
 		return prompt, data, nil
 	}
 

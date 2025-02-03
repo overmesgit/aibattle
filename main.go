@@ -1,7 +1,6 @@
 package main
 
 import (
-	"aibattle/battler"
 	_ "aibattle/migrations"
 	"aibattle/pages"
 	"aibattle/pages/auth"
@@ -66,7 +65,7 @@ func main() {
 			)
 
 			go func() {
-				battler.RunBattleTask(app)
+				//battler.RunBattleTask(app)
 			}()
 
 			go func() {
@@ -102,8 +101,10 @@ func ProcessPromts(app *pocketbase.PocketBase) {
 			)
 			if promptErr != nil {
 				log.Printf("Error getting prompt: %v", promptErr)
-				firstPrompt.Set("status", "error: "+promptErr.Error())
+				firstPrompt.Set("status", "error")
+				firstPrompt.Set("error", promptErr.Error())
 			}
+			firstPrompt.Set("error", "")
 			firstPrompt.Set("output", newProg)
 			firstPrompt.Set("status", "done")
 			saveErr := app.Save(firstPrompt)

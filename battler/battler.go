@@ -85,7 +85,7 @@ func saveBattleResults(
 	scoreChange := user1Score.GetFloat("score") - oldScore1
 	result1 := createBattleResult(
 		prompt1, prompt2.GetString("user"), battle.Id, scoreChange,
-		battleResultColl,
+		battleResultColl, "teamA",
 	)
 	if res1Err := app.Save(result1); res1Err != nil {
 		return fmt.Errorf("error saving battle result 1: %w", res1Err)
@@ -93,7 +93,8 @@ func saveBattleResults(
 
 	scoreChange2 := user2Score.GetFloat("score") - oldScore2
 	result2 := createBattleResult(
-		prompt2, prompt1.GetString("user"), battle.Id, scoreChange2, battleResultColl,
+		prompt2, prompt1.GetString("user"), battle.Id, scoreChange2,
+		battleResultColl, "teamB",
 	)
 	if res2Err := app.Save(result2); res2Err != nil {
 		return fmt.Errorf("error saving battle result 2: %w", res2Err)
@@ -183,7 +184,7 @@ func updateUserScores(
 
 func createBattleResult(
 	prompt *core.Record, opponentID string, battleID string, scoreChange float64,
-	collection *core.Collection,
+	collection *core.Collection, team string,
 ) *core.Record {
 	result := core.NewRecord(collection)
 	result.Set("user", prompt.GetString("user"))
@@ -191,6 +192,7 @@ func createBattleResult(
 	result.Set("opponent", opponentID)
 	result.Set("battle", battleID)
 	result.Set("score_change", scoreChange)
+	result.Set("team", team)
 	return result
 }
 
