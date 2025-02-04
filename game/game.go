@@ -121,7 +121,9 @@ func RunGame() (Result, error) {
 	calcHP := func(item *world.Unit) int {
 		return item.HP
 	}
-	result := Result{}
+	result := Result{
+		Winner: world.Draw,
+	}
 
 	for turn := 0; turn < maxTurns; turn++ {
 		gameState.Turn = turn

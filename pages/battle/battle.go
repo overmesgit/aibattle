@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -85,8 +86,8 @@ func Detailed(
 
 type BattleView struct {
 	ID          string
-	Status      string
-	ScoreChange float64
+	ScoreChange string
+	Result      string
 	Opponent    string
 	Date        time.Time
 }
@@ -121,12 +122,8 @@ func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Req
 			view := BattleView{
 				ID:          battle.Id,
 				Date:        battle.GetDateTime("created").Time(),
-				ScoreChange: battle.GetFloat("score_change"),
-			}
-			if view.ScoreChange > 0 {
-				view.Status = "won"
-			} else {
-				view.Status = "lost"
+				ScoreChange: fmt.Sprintf("%+.f", battle.GetFloat("score_change")),
+				Result:      battle.GetString("result"),
 			}
 
 			// Get opponent name from expanded relation

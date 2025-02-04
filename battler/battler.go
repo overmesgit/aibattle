@@ -63,7 +63,7 @@ func RunBattle(app *pocketbase.PocketBase) error {
 	}
 
 	resErr := saveBattleResults(
-		app, user1Score, oldScore1, prompt1, prompt2, battle, user2Score, oldScore2,
+		app, result, user1Score, oldScore1, prompt1, prompt2, battle, user2Score, oldScore2,
 	)
 	if resErr != nil {
 		return resErr
@@ -74,9 +74,23 @@ func RunBattle(app *pocketbase.PocketBase) error {
 }
 
 func saveBattleResults(
-	app *pocketbase.PocketBase, user1Score *core.Record, oldScore1 float64, prompt1 *core.Record,
-	prompt2 *core.Record, battle *core.Record, user2Score *core.Record, oldScore2 float64,
+	app *pocketbase.PocketBase, result game.Result, user1Score *core.Record, oldScore1 float64,
+	prompt1 *core.Record, prompt2 *core.Record, battle *core.Record, user2Score *core.Record,
+	oldScore2 float64,
 ) error {
+	user1Res := ""
+	user2Res := ""
+	switch result.Winner {
+	case world.TeamA:
+		user1Res = "won"
+		user2Res = "lost"
+	case world.TeamB:
+		user1Res = "lost"
+		user2Res = "won"
+	case world.Draw:
+		user1Res = "draw"
+		user2Res = "draw"
+	}
 	// Create battle result records for both players
 	battleResultColl, findErr := app.FindCollectionByNameOrId("battle_result")
 	if findErr != nil {
@@ -85,7 +99,7 @@ func saveBattleResults(
 	scoreChange := user1Score.GetFloat("score") - oldScore1
 	result1 := createBattleResult(
 		prompt1, prompt2.GetString("user"), battle.Id, scoreChange,
-		battleResultColl, "teamA",
+		battleResultColl, "teamA", user1Res,
 	)
 	if res1Err := app.Save(result1); res1Err != nil {
 		return fmt.Errorf("error saving battle result 1: %w", res1Err)
@@ -94,7 +108,7 @@ func saveBattleResults(
 	scoreChange2 := user2Score.GetFloat("score") - oldScore2
 	result2 := createBattleResult(
 		prompt2, prompt1.GetString("user"), battle.Id, scoreChange2,
-		battleResultColl, "teamB",
+		battleResultColl, "teamB", user2Res,
 	)
 	if res2Err := app.Save(result2); res2Err != nil {
 		return fmt.Errorf("error saving battle result 2: %w", res2Err)
@@ -184,7 +198,7 @@ func updateUserScores(
 
 func createBattleResult(
 	prompt *core.Record, opponentID string, battleID string, scoreChange float64,
-	collection *core.Collection, team string,
+	collection *core.Collection, team string, res string,
 ) *core.Record {
 	result := core.NewRecord(collection)
 	result.Set("user", prompt.GetString("user"))
@@ -193,6 +207,7 @@ func createBattleResult(
 	result.Set("battle", battleID)
 	result.Set("score_change", scoreChange)
 	result.Set("team", team)
+	result.Set("result", res)
 	return result
 }
 

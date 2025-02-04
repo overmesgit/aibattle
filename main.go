@@ -1,6 +1,7 @@
 package main
 
 import (
+	"aibattle/battler"
 	_ "aibattle/migrations"
 	"aibattle/pages"
 	"aibattle/pages/auth"
@@ -65,7 +66,7 @@ func main() {
 			)
 
 			go func() {
-				//battler.RunBattleTask(app)
+				battler.RunBattleTask(app)
 			}()
 
 			go func() {

@@ -19,13 +19,17 @@
                                   class="badge">{{.Opponent}}</span></div>
                         <div class="text-sm text-base-content/70">{{.Date | date "2006-01-02 15:04:05"}}</div>
                       </div>
-                        {{if eq .Status "won"}}
+                        {{if eq .Result "won"}}
                           <div class="badge badge-primary badge-lg m-1">Won</div>
                           <div class="badge badge-primary badge-lg m-1">Score:
                             +{{.ScoreChange}}</div>
-                        {{else if eq .Status "lost"}}
+                        {{else if eq .Result "lost"}}
                           <div class="badge badge-error badge-lg m-1">Lost</div>
                           <div class="badge badge-error badge-lg m-1">Score: {{.ScoreChange}}</div>
+                        {{else if eq .Result "draw"}}
+                          <div class="badge badge-warning badge-lg m-1">Draw</div>
+                          <div class="badge badge-warning badge-lg m-1">
+                            Score: {{.ScoreChange}}</div>
                         {{end}}
                     </div>
                   </a>
