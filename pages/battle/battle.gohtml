@@ -92,12 +92,28 @@
           </div>
       `;
 
-      const BattleGrid = ({currentState}) => {
+      const BattleGrid = ({currentState, currentAction}) => {
+          // Create deep copy of units to track positions
+          const units = JSON.parse(JSON.stringify(currentState.units || []));
+          const idToUnit = new Map(units.map(unit => [unit.id, unit]));
 
+          // Get actions up to current and apply position updates
+          const relevantActions = currentState.actions?.slice(0, currentAction + 1) || [];
+          relevantActions.forEach(action => {
+              action.unit_action.forEach(act => {
+                  if (act?.target && act.action.includes('move') && !act.error) {
+                      const unit = idToUnit.get(action.unit_id);
+                      if (unit) {
+                          unit.position.x = act.target.x;
+                          unit.position.y = act.target.y;
+                      }
+                  }
+              });
+          });
           const unitStyle = (unit) => css`
-            left: ${getOffset(unit.position.x, 1)}px;
-            top: ${getOffset(unit.position.y, 1)}px;`;
-          const idToUnit = new Map(currentState.units?.map(unit => [unit.id, unit]));
+          left: ${getOffset(unit.position.x, 1)}px;
+          top: ${getOffset(unit.position.y, 1)}px;`;
+
 
           return html`
               <div>
@@ -112,7 +128,7 @@
                                                            unit=${idToUnit.get(action.unit_id)}/>`
                               )
                       )}
-                      ${currentState.units?.map((unit) =>
+                      ${units.map((unit) =>
                                       unit.hp > 0 && html`
                                           <div key=${unit.id} class="absolute ${unitStyle(unit)}">
                                               <${UnitIcon} unit=${unit}/>
@@ -155,7 +171,7 @@
           </div>
       `;
 
-      const ActionLog = ({currentState}) => {
+      const ActionLog = ({currentState, currentAction}) => {
           let wonTeam = null;
           if (currentState.type?.startsWith("Team")) {
               wonTeam = `${currentState.type} WON!`;
@@ -166,7 +182,7 @@
                   <div class="h-82 overflow-y-auto w-96">
                       ${wonTeam}
                       ${currentState.actions?.map((action, index) => html`
-                          <div key=${index} class="mb-2">
+                          <div key=${index} class="m-2">
                               ${action.unit_action.map((act, actIndex) => {
                                   if (!act) return null;
                                   const targetUnit = currentState.units?.find(
@@ -176,7 +192,7 @@
                                   const backGround = unit?.team === 1 ? "bg-blue-300" : "bg-red-300";
                                   return html`
                                       <div key=${actIndex}
-                                           class="text-sm border-b border-gray-100 p-1 ${backGround}">
+                                           class="text-sm p-1 ${backGround} ${index === currentAction ? 'ring-4 ring-yellow-500 ring-offset-0' : ''}">
                                           <p>
                                               ${unitTeam[unit?.team]} Unit ${unit?.type}:
                                               ${act.action}
@@ -216,22 +232,62 @@
           `
       };
 
+      const ActionControls = ({currentAction, totalActions, setCurrentAction}) => html`
+          <div class="bg-white rounded-lg shadow p-4 mb-4">
+              <h2 class="text-lg font-bold mb-2">Action ${currentAction + 1} of ${totalActions}</h2>
+              <input
+                      type="range"
+                      min="0"
+                      max=${Math.max(0, totalActions - 1)}
+                      value=${currentAction}
+                      onChange=${(e) => setCurrentAction(Number(e.target.value))}
+                      class="w-full mb-2"
+              />
+              <div class="flex justify-between">
+                  <button
+                          onClick=${() => setCurrentAction(a => Math.max(0, a - 1))}
+                          class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
+                          disabled=${currentAction === 0}
+                  >
+                      Previous Action
+                  </button>
+                  <button
+                          onClick=${() => setCurrentAction(a => Math.min(totalActions - 1, a + 1))}
+                          class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
+                          disabled=${currentAction === totalActions - 1}
+                  >
+                      Next Action
+                  </button>
+              </div>
+          </div>
+      `;
+
       const BattleViewer = () => {
           const [currentTurn, setCurrentTurn] = useState(0);
+          const [currentAction, setCurrentAction] = useState(0);
 
           const currentState = gameData[currentTurn] || {units: [], actions: []};
+          const totalActions = currentState.actions?.length || 0;
+
+          const handleTurnChange = (newTurn) => {
+              setCurrentTurn(newTurn);
+              setCurrentAction(0);
+          };
 
           return html`
               <div class="flex justify-center p-4">
                   <div class="bg-gray-50 p-4 ${gridStyle}">
-                      <${BattleGrid} currentState=${currentState}/>
+                      <${BattleGrid} currentState=${currentState} currentAction=${currentAction}/>
                   </div>
                   <div class="p-4 bg-gray-50">
                       ${gameData.length > 0 && html`
                           <${Controls} currentTurn=${currentTurn} gameData=${gameData}
-                                       setCurrentTurn=${setCurrentTurn}/>
+                                       setCurrentTurn=${handleTurnChange}/>
+                              <${ActionControls} currentAction=${currentAction}
+                                                 totalActions=${totalActions}
+                                                 setCurrentAction=${setCurrentAction}/>
                       `}
-                      <${ActionLog} currentState=${currentState}/>
+                      <${ActionLog} currentState=${currentState} currentAction=${currentAction}/>
                   </div>
 
                   <div class="p-4 bg-gray-50">
