@@ -22,7 +22,7 @@
                         {{if eq .Result "won"}}
                           <div class="badge badge-primary badge-lg m-1">Won</div>
                           <div class="badge badge-primary badge-lg m-1">Score:
-                            +{{.ScoreChange}}</div>
+                            {{.ScoreChange}}</div>
                         {{else if eq .Result "lost"}}
                           <div class="badge badge-error badge-lg m-1">Lost</div>
                           <div class="badge badge-error badge-lg m-1">Score: {{.ScoreChange}}</div>

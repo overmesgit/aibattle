@@ -28,6 +28,11 @@
           1: "bg-blue-500",
           2: "bg-red-500",
       }
+      const unitTeam = {
+          1: "TeamA",
+          2: "TeamB",
+      };
+
       const UnitIcon = ({unit}) => {
           return html`
               <div class=${`w-8 h-8 ${teamColor[unit.team]} rounded-full flex items-center justify-center text-white`}>
@@ -168,17 +173,19 @@
                                           u => u.position.x === act.target?.x && u.position.y === act.target?.y
                                   );
                                   const unit = currentState.units.find((u) => u.id === action.unit_id);
+                                  const backGround = unit?.team === 1 ? "bg-blue-300" : "bg-red-300";
                                   return html`
                                       <div key=${actIndex}
-                                           class="text-sm border-b border-gray-100 py-1">
-                                              <p>
-                                                  Team${unit?.team} Unit ${unit?.type}:
-                                                  ${act.action}
-                                                  ${act.target ? ` to (${act.target.y}, ${act.target.x})
+                                           class="text-sm border-b border-gray-100 p-1 ${backGround}">
+                                          <p>
+                                              ${unitTeam[unit?.team]} Unit ${unit?.type}:
+                                              ${act.action}
+                                              ${act.target ? ` to (${act.target.y}, ${act.target.x})
                                                   ${targetUnit ? ` [${targetUnit.type}]` : ''
-                                                  }` : ''}
-                                              </p>
-                                          ${act.error ? html`<p class="bg-red-300">${act.error}</p>` : ''}
+                                              }` : ''}
+                                          </p>
+                                          ${act.error ? html`<p class="bg-red-500 p-1">
+                                              ${act.error}</p>` : ''}
                                       </div>
                                   `;
                               })}
@@ -189,21 +196,25 @@
           `;
       }
 
-      const UnitStatus = ({currentState}) => html`
-          <div class="bg-white rounded-lg shadow p-4">
-              <h2 class="text-lg font-bold mb-2">Unit Status</h2>
-              <div class="space-y-1">
-                  ${currentState.units?.map((unit) => html`
-                      <div
-                              key=${unit.id}
-                              class=${`text-sm ${unit.hp <= 0 ? 'text-gray-400' : ''}`}
-                      >
-                          Team ${unit.team} ${unit.type}: ${Math.max(0, unit.hp)}/${unit.maxHp} HP
-                      </div>
-                  `)}
+      const UnitStatus = ({currentState}) => {
+          return html`
+              <div class="bg-white rounded-lg shadow p-4">
+                  <h2 class="text-lg font-bold mb-2">Unit Status</h2>
+                  <div class="space-y-1">
+                      ${currentState.units?.map((unit) => html`
+                          <div
+                                  key=${unit.id}
+                                  class=${`text-sm p-1 ${unit.hp <= 0 ? 'text-gray-400' : ''}
+                                  ${unit?.team === 1 ? "bg-blue-300" : "bg-red-300"}`}
+                          >
+                              ${unitTeam[unit?.team]} ${unit.type}: ${Math.max(0, unit.hp)}
+                                  /${unit.maxHp} HP
+                          </div>
+                      `)}
+                  </div>
               </div>
-          </div>
-      `;
+          `
+      };
 
       const BattleViewer = () => {
           const [currentTurn, setCurrentTurn] = useState(0);

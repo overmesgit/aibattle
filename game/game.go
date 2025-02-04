@@ -172,7 +172,7 @@ func RunGame() (Result, error) {
 				//)
 				err := updateGameState(&gameState, unit, act)
 				if err != nil {
-					log.Println(err)
+					//log.Println(err)
 					act.Error = err.Error()
 				}
 			}
