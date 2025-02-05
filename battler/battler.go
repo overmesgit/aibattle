@@ -117,7 +117,7 @@ func saveBattleResults(
 }
 
 func saveBattle(app *pocketbase.PocketBase, result game.Result) (*core.Record, error) {
-	compressedRes, zipErr := MarshalGzip(result.Turns)
+	compressedRes, zipErr := MarshalGzip(result)
 	if zipErr != nil {
 		return nil, fmt.Errorf("error comporessing result: %w", zipErr)
 	}
@@ -255,7 +255,7 @@ func getNewScores(winner float64, looser float64, draw bool) (float64, float64) 
 	return newScore1, newScore2
 }
 
-func MarshalGzip(result []game.TurnLog) (string, error) {
+func MarshalGzip(result game.Result) (string, error) {
 	data, err := json.Marshal(result)
 	if err != nil {
 		return "", err

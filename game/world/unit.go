@@ -33,6 +33,7 @@ type Skill struct {
 	Effect Effect `json:"effect"`
 	Range  int    `json:"range"`
 	Value  int    `json:"value"`
+	Name   string `json:"name"`
 }
 
 type ActionMap struct {
@@ -91,7 +92,7 @@ func NewHealer(team int, position Position) *Unit {
 			Move:    &Move{2},
 			Hold:    &Move{},
 			Attack1: &Attack{1, 10},
-			Skill1:  &Skill{HEAL, 5, 30},
+			Skill1:  &Skill{HEAL, 5, 30, "heal"},
 		},
 	}
 }
@@ -109,7 +110,7 @@ func NewMage(team int, position Position) *Unit {
 			Move:    &Move{2},
 			Hold:    &Move{},
 			Attack1: &Attack{1, 10},
-			Skill1:  &Skill{RANGE, 4, 40},
+			Skill1:  &Skill{RANGE, 4, 40, "firebolt"},
 		},
 	}
 }

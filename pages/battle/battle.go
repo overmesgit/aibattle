@@ -72,11 +72,10 @@ func Detailed(
 		if err != nil {
 			return err
 		}
-		output := string(decompressed)
 		data := &Data{
 			User:     e.Auth,
 			Battle:   battle,
-			Output:   output,
+			Output:   string(decompressed),
 			MyTeam:   battleResult.GetString("team"),
 			Opponent: opponent.GetString("name"),
 		}

@@ -10,6 +10,7 @@
     </div>
     <div class="flex-none">
         {{if .User }}
+          <span class="mr-4">{{.User.GetString "name"}}</span>
           <a href="/logout" class="btn btn-info">Logout</a>
         {{else}}
           <a href="/login" class="btn btn-ghost">Login</a>

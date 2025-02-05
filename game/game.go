@@ -108,8 +108,9 @@ func GetNextAction(state world.GameState, unit *world.Unit) TurnAction {
 }
 
 type Result struct {
-	Turns  []TurnLog
-	Winner int
+	Turns     []TurnLog     `json:"turns"`
+	Winner    int           `json:"winner"`
+	InitUnits []*world.Unit `json:"init_units"`
 }
 
 func RunGame() (Result, error) {
@@ -122,7 +123,8 @@ func RunGame() (Result, error) {
 		return item.HP
 	}
 	result := Result{
-		Winner: world.Draw,
+		Winner:    world.Draw,
+		InitUnits: gameState.Units,
 	}
 
 	for turn := 0; turn < maxTurns; turn++ {
@@ -148,7 +150,7 @@ func RunGame() (Result, error) {
 
 		for _, unit := range gameState.Units {
 			if !unit.IsAlive() {
-				log.Printf("Team %d Unit %s is dead\n", unit.Team, unit.Type)
+				//log.Printf("Team %d Unit %s is dead\n", unit.Team, unit.Type)
 				continue
 			}
 

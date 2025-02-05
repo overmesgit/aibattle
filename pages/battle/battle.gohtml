@@ -9,6 +9,8 @@
       import {useState} from 'preact/hooks';
 
       const gameData = JSON.parse({{.Output}});
+      const gameTurns = gameData.turns;
+      const initUnits = gameData.init_units;
       const CELL_SIZE = 32;
       const GRID_SIZE = 20;
 
@@ -32,6 +34,29 @@
           1: "TeamA",
           2: "TeamB",
       };
+
+
+      const createSkillMap = (initUnits) => {
+          const skillMap = {};
+
+          initUnits.forEach(unit => {
+              if (!skillMap[unit.type]) {
+                  skillMap[unit.type] = {};
+
+                  // Map all actions from the unit
+                  Object.entries(unit.actions).forEach(([actionKey, actionValue]) => {
+                      if (actionKey.startsWith("skill")) {
+                          const skillKey = actionKey.replaceAll("_", "");
+                          skillMap[unit.type][skillKey] = actionValue.name;
+                      }
+                  });
+              }
+          });
+
+          return skillMap;
+      };
+      const skillMap = createSkillMap(initUnits);
+      console.log(skillMap)
 
       const UnitIcon = ({unit}) => {
           return html`
@@ -140,14 +165,14 @@
           `;
       };
 
-      const Controls = ({currentTurn, gameData, setCurrentTurn}) => html`
+      const Controls = ({currentTurn, gameTurns, setCurrentTurn}) => html`
           <div class="bg-white rounded-lg shadow p-4 mb-4">
               <h2 class="text-lg font-bold mb-2">My {{.MyTeam}}</h2>
               <h2 class="text-lg font-bold mb-2">Turn ${currentTurn} </h2>
               <input
                       type="range"
                       min="0"
-                      max=${gameData.length - 1}
+                      max=${gameTurns.length - 1}
                       value=${currentTurn}
                       onChange=${(e) => setCurrentTurn(Number(e.target.value))}
                       class="w-full mb-2"
@@ -161,9 +186,9 @@
                       Previous
                   </button>
                   <button
-                          onClick=${() => setCurrentTurn(t => Math.min(gameData.length - 1, t + 1))}
+                          onClick=${() => setCurrentTurn(t => Math.min(gameTurns.length - 1, t + 1))}
                           class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
-                          disabled=${currentTurn === gameData.length - 1}
+                          disabled=${currentTurn === gameTurns.length - 1}
                   >
                       Next
                   </button>
@@ -195,7 +220,7 @@
                                            class="text-sm p-1 ${backGround} ${index === currentAction ? 'ring-4 ring-yellow-500 ring-offset-0' : ''}">
                                           <p>
                                               ${unitTeam[unit?.team]} Unit ${unit?.type}:
-                                              ${act.action}
+                                              ${skillMap[unit?.type][act.action] || act.action}
                                               ${act.target ? ` to (${act.target.y}, ${act.target.x})
                                                   ${targetUnit ? ` [${targetUnit.type}]` : ''
                                               }` : ''}
@@ -266,7 +291,7 @@
           const [currentTurn, setCurrentTurn] = useState(0);
           const [currentAction, setCurrentAction] = useState(0);
 
-          const currentState = gameData[currentTurn] || {units: [], actions: []};
+          const currentState = gameTurns[currentTurn] || {units: [], actions: []};
           const totalActions = currentState.actions?.length || 0;
 
           const handleTurnChange = (newTurn) => {
@@ -275,13 +300,13 @@
           };
 
           return html`
-              <div class="flex justify-center p-4">
+              <div class="flex justify-center m-4 bg-gray-50">
                   <div class="bg-gray-50 p-4 ${gridStyle}">
                       <${BattleGrid} currentState=${currentState} currentAction=${currentAction}/>
                   </div>
                   <div class="p-4 bg-gray-50">
-                      ${gameData.length > 0 && html`
-                          <${Controls} currentTurn=${currentTurn} gameData=${gameData}
+                      ${gameTurns.length > 0 && html`
+                          <${Controls} currentTurn=${currentTurn} gameTurns=${gameTurns}
                                        setCurrentTurn=${handleTurnChange}/>
                               <${ActionControls} currentAction=${currentAction}
                                                  totalActions=${totalActions}
