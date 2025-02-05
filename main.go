@@ -10,17 +10,15 @@ import (
 	"aibattle/pages/middleware"
 	"aibattle/pages/prompt"
 	"context"
-	"log"
-	"net/http"
-	"os"
-	"strings"
-	"time"
-
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/router"
+	"log"
+	"net/http"
+	"os"
+	"strings"
 )
 
 func main() {
@@ -69,7 +67,7 @@ func main() {
 			}()
 
 			go func() {
-				ProcessPromts(app)
+				ProcessPrompts(app)
 			}()
 			return se.Next()
 		},
@@ -80,40 +78,42 @@ func main() {
 	}
 }
 
-func ProcessPromts(app *pocketbase.PocketBase) {
+func ProcessPrompts(app *pocketbase.PocketBase) {
+	ScheduleRemainingPrompts(app)
 	for {
-		records, err := app.FindRecordsByFilter(
-			"prompt",
-			"status = ''",
-			"-created",
-			1,
-			0,
+		firstPrompt := <-prompt.PromptsToProcess
+		newProg, promptErr := prompt.GetProgram(
+			context.Background(), firstPrompt.Id, firstPrompt.GetString("text"),
 		)
-
-		if err != nil {
-			log.Fatalf("Error fetching prompt: %v", err)
+		if promptErr != nil {
+			log.Printf("Error getting prompt: %v", promptErr)
+			firstPrompt.Set("status", "error")
+			firstPrompt.Set("error", promptErr.Error())
 		}
-
-		if len(records) > 0 {
-			firstPrompt := records[0]
-			newProg, promptErr := prompt.GetProgram(
-				context.Background(), firstPrompt.Id, firstPrompt.GetString("text"),
-			)
-			if promptErr != nil {
-				log.Printf("Error getting prompt: %v", promptErr)
-				firstPrompt.Set("status", "error")
-				firstPrompt.Set("error", promptErr.Error())
-			}
-			firstPrompt.Set("error", "")
-			firstPrompt.Set("output", newProg)
-			firstPrompt.Set("status", "done")
-			saveErr := app.Save(firstPrompt)
-			if saveErr != nil {
-				log.Printf("Error saving prompt: %v", saveErr)
-			}
+		firstPrompt.Set("error", "")
+		firstPrompt.Set("output", newProg)
+		firstPrompt.Set("status", "done")
+		saveErr := app.Save(firstPrompt)
+		if saveErr != nil {
+			log.Printf("Error saving prompt: %v", saveErr)
 		}
+	}
+}
 
-		time.Sleep(1 * time.Second)
+func ScheduleRemainingPrompts(app *pocketbase.PocketBase) {
+	records, err := app.FindRecordsByFilter(
+		"prompt",
+		"status = ''",
+		"-created",
+		20,
+		0,
+	)
+	if err != nil {
+		log.Fatalf("Error fetching prompt: %v", err)
+	}
+	for _, record := range records {
+		log.Printf("Scheduling record: %v", record.Id)
+		prompt.PromptsToProcess <- record
 	}
 }
 

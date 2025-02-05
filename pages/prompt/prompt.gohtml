@@ -8,21 +8,32 @@
           color: #f87171;
       }
 
-    textarea:disabled {
-        opacity: 1 !important;
-        background-color: inherit !important;
-        color: inherit !important;
-    }
+      textarea:disabled {
+          opacity: 1 !important;
+          background-color: inherit !important;
+          color: inherit !important;
+      }
   </style>
   <div class="flex p-4 pl-8 pr-8">
     <div class="w-1/4 pr-4">
       <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
           <h2 class="card-title">Prompts</h2>
+          <div class="mb-4">
+            <a href="/prompt" class="btn btn-neutral w-full">Create New Prompt</a>
+          </div>
           <ul class="menu">
-            {{range .Prompts}}
-              <li><a href="/prompt/{{.Id}}" {{if eq .Id $.ID}}class="active"{{end}}>{{.GetDateTime "created"}}</a></li>
-            {{end}}
+              {{range .Prompts}}
+                <li>
+                  <a href="/prompt/{{.Id}}"
+                     class="{{if eq .Id $.ID}}active{{end}}">
+                      {{.GetDateTime "created"}}
+                      {{if .GetBool "active"}}
+                        <span class="badge badge-primary">Active</span>
+                      {{end}}
+                  </a>
+                </li>
+              {{end}}
           </ul>
         </div>
       </div>
@@ -79,7 +90,7 @@
           </div>
         </div>
       </form>
-      <form action="/prompt/{{.ID}}/activate" method="POST" class="mt-2 card bg-base-100 shadow-xl" >
+      <form action="/prompt/{{.ID}}/activate" method="POST" class="mt-2 card bg-base-100 shadow-xl">
         <div class="card-body">
           <div class="form-control">
             <label class="label">

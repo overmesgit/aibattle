@@ -2,8 +2,10 @@ package prompt
 
 import (
 	"aibattle/pages"
+	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
@@ -56,8 +58,11 @@ func CreatePrompt(
 			return dataErr
 		}
 		data.Text = e.Request.FormValue("text")
-		newPrompt, promptErr := CreateUpdatePrompt(data.Text, e.Auth.Id, app, nil)
+		newPrompt, validationErr, promptErr := CreateUpdatePrompt(data.Text, e.Auth.Id, app, nil)
 		if promptErr != nil {
+			return promptErr
+		}
+		if validationErr != nil {
 			return pages.Render(e, templ, "prompt.gohtml", data)
 		}
 		return e.Redirect(http.StatusFound, "/prompt/"+newPrompt.Id)
@@ -89,9 +94,17 @@ func UpdatePrompt(
 
 		data.Text = e.Request.FormValue("text")
 
-		updatedPrompt, promptErr := CreateUpdatePrompt(data.Text, e.Auth.Id, app, prompt)
-		data.Output = updatedPrompt.GetString("output")
-		data.Errors = promptErr
+		updatedPrompt, validationErr, promptErr := CreateUpdatePrompt(
+			data.Text, e.Auth.Id, app, prompt,
+		)
+		if promptErr != nil {
+			return promptErr
+		}
+		// resetting Output field after update
+		if validationErr != nil {
+			data.Output = updatedPrompt.GetString("output")
+		}
+		data.Errors = validationErr
 		return pages.Render(e, templ, "prompt.gohtml", data)
 	}
 }
@@ -101,7 +114,10 @@ func ActivatePrompt(
 ) func(e *core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
-		prompt, _, dataErr := defaultData(e.Auth, app, id)
+		prompt, dataErr := app.FindFirstRecordByFilter(
+			"prompt", "id={:id} && user={:user}",
+			dbx.Params{"id": id, "user": e.Auth.Id},
+		)
 		if dataErr != nil {
 			return dataErr
 		}
@@ -141,8 +157,11 @@ func defaultData(
 	}
 
 	if id != "" {
-		prompt, err := app.FindRecordById("prompt", id)
-		if err != nil {
+		prompt, dataErr := app.FindFirstRecordByFilter(
+			"prompt", "id={:id} && user={:user}",
+			dbx.Params{"id": id, "user": user.Id},
+		)
+		if dataErr != nil {
 			return nil, data, err
 		}
 		data.ID = prompt.Id
@@ -158,20 +177,27 @@ func defaultData(
 	return nil, data, nil
 }
 
+var PromptsToProcess = make(chan *core.Record, 20)
+var UserRateLimiter = make(map[string]time.Time)
+
 func CreateUpdatePrompt(
 	text string, userID string, app *pocketbase.PocketBase, prompt *core.Record,
-) (*core.Record, []string) {
+) (*core.Record, []string, error) {
 	// TODO: check prompt limits
 	var errors []string
 	if len(text) > 300 {
 		errors = append(errors, "Text too long")
-		return nil, errors
+		return nil, errors, nil
+	}
+	if time.Now().Sub(UserRateLimiter[userID]).Seconds() < 60 {
+		errors = append(errors, "We allow only one update per minute per user, please try later.")
+		return nil, errors, nil
 	}
 	var newPrompt *core.Record
 	if prompt == nil {
 		collection, err := app.FindCollectionByNameOrId("prompt")
 		if err != nil {
-			return nil, []string{err.Error()}
+			return nil, nil, err
 		}
 		newPrompt = core.NewRecord(collection)
 	} else {
@@ -183,7 +209,15 @@ func CreateUpdatePrompt(
 	newPrompt.Set("output", "")
 	saveErr := app.Save(newPrompt)
 	if saveErr != nil {
-		return nil, []string{saveErr.Error()}
+		return newPrompt, nil, saveErr
 	}
-	return newPrompt, nil
+
+	select {
+	case PromptsToProcess <- newPrompt:
+		fmt.Println("prompt scheduled", newPrompt.Id)
+		UserRateLimiter[userID] = time.Now()
+	default:
+		return newPrompt, []string{"Too many request to create prompt. Try later."}, nil
+	}
+	return newPrompt, nil, nil
 }

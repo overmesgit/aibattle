@@ -1,15 +1,15 @@
 ## TODO
 
 * landing page
-* check for claude ai errors
-* skill map in battle viewer
-* check security (show only objects for current user)
-* disable prompt update if it is in processing
 * rule explanation
-* change action log to teamA and teamB
-* add randomness to battle matching
-* rate limit requests
+* show context at the prompt page
 * deploy to the internet
+
+## Ideas
+
+* check for claude ai errors
+* add randomness to battle matching
+* disable prompt update if it is in processing
 * add python3, js
 * add another apis
 * update leader board in realtime
