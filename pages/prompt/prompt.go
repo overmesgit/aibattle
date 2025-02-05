@@ -20,6 +20,7 @@ type Data struct {
 
 	ID      string
 	Output  string
+	Status  string
 	Prompts []*core.Record
 }
 
@@ -101,8 +102,9 @@ func UpdatePrompt(
 			return promptErr
 		}
 		// resetting Output field after update
-		if validationErr != nil {
+		if validationErr == nil {
 			data.Output = updatedPrompt.GetString("output")
+			data.Status = updatedPrompt.GetString("status")
 		}
 		data.Errors = validationErr
 		return pages.Render(e, templ, "prompt.gohtml", data)
@@ -115,7 +117,7 @@ func ActivatePrompt(
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
 		prompt, dataErr := app.FindFirstRecordByFilter(
-			"prompt", "id={:id} && user={:user}",
+			"prompt", "id={:id} && user={:user} && status='done'",
 			dbx.Params{"id": id, "user": e.Auth.Id},
 		)
 		if dataErr != nil {
@@ -167,6 +169,7 @@ func defaultData(
 		data.ID = prompt.Id
 		data.Text = prompt.GetString("text")
 		data.Output = prompt.GetString("output")
+		data.Status = prompt.GetString("status")
 		promptError := prompt.GetString("error")
 		if promptError != "" {
 			data.Errors = []string{promptError}
