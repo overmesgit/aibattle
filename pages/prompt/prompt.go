@@ -162,6 +162,7 @@ func defaultData(
 		User:          user,
 		Prompts:       prompts,
 		DefaultPrompt: gameRules,
+		Status:        "unknown",
 	}
 
 	if id != "" {

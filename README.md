@@ -5,6 +5,7 @@
 
 ## Ideas
 
+* battles frequency
 * check for claude ai errors
 * add randomness to battle matching
 * disable prompt update if it is in processing

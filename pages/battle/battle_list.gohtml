@@ -15,8 +15,10 @@
                      class="bg-base-200 p-4 rounded-lg hover:bg-base-300 transition duration-200">
                     <div class="flex justify-between items-center">
                       <div class="flex-1">
-                        <div class="font-semibold">Battle vs <span
-                                  class="badge">{{.Opponent}}</span></div>
+                        <div class="font-semibold">Battle vs
+                          <span class="badge">{{.Opponent}}</span>
+                        </div>
+                        <div class="text-sm text-base-content/70">Prompt id: {{.PromptID}}</div>
                         <div class="text-sm text-base-content/70">{{.Date | date "2006-01-02 15:04:05"}}</div>
                       </div>
                         {{if eq .Result "won"}}

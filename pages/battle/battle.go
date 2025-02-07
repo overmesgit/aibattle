@@ -19,7 +19,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-type Data struct {
+type DetailView struct {
 	User     *core.Record
 	Battle   *core.Record
 	Output   string
@@ -72,7 +72,7 @@ func Detailed(
 		if err != nil {
 			return err
 		}
-		data := &Data{
+		data := &DetailView{
 			User:     e.Auth,
 			Battle:   battle,
 			Output:   string(decompressed),
@@ -83,17 +83,18 @@ func Detailed(
 	}
 }
 
-type BattleView struct {
+type ListView struct {
 	ID          string
 	ScoreChange string
 	Result      string
 	Opponent    string
 	Date        time.Time
+	PromptID    string
 }
 
 type ListData struct {
 	User    *core.Record
-	Battles []BattleView
+	Battles []ListView
 }
 
 func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.RequestEvent) error {
@@ -116,12 +117,13 @@ func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Req
 			return lo.Values(expErr)[0]
 		}
 
-		battleViews := make([]BattleView, len(battles))
+		battleViews := make([]ListView, len(battles))
 		for i, battle := range battles {
-			view := BattleView{
+			view := ListView{
 				ID:          battle.Id,
 				Date:        battle.GetDateTime("created").Time(),
 				ScoreChange: fmt.Sprintf("%+.f", battle.GetFloat("score_change")),
+				PromptID:    battle.GetString("prompt"),
 				Result:      battle.GetString("result"),
 			}
 

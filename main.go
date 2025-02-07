@@ -1,6 +1,7 @@
 package main
 
 import (
+	"aibattle/battler"
 	_ "aibattle/migrations"
 	"aibattle/pages"
 	"aibattle/pages/auth"
@@ -49,7 +50,7 @@ func main() {
 			se.Router.POST("/login", auth.Login(app, templ))
 			se.Router.GET("/leader", leader.List(app, templ))
 
-			se.Router.GET("/{$}", index.Index(app, templ))
+			se.Router.GET("/{$}", index.Landing(app, templ))
 
 			withAuth(
 				se.Router.GET("/logout", auth.Logout(app, templ)),
@@ -63,7 +64,7 @@ func main() {
 			)
 
 			go func() {
-				//battler.RunBattleTask(app)
+				battler.RunBattleTask(app)
 			}()
 
 			go func() {

@@ -817,7 +817,7 @@ func init() {
 						"autogeneratePattern": "",
 						"hidden": false,
 						"id": "text999008199",
-						"max": 20000,
+						"max": 0,
 						"min": 0,
 						"name": "text",
 						"pattern": "",
@@ -831,23 +831,9 @@ func init() {
 						"autogeneratePattern": "",
 						"hidden": false,
 						"id": "text3437106334",
-						"max": 0,
+						"max": 30000,
 						"min": 0,
 						"name": "output",
-						"pattern": "",
-						"presentable": false,
-						"primaryKey": false,
-						"required": false,
-						"system": false,
-						"type": "text"
-					},
-					{
-						"autogeneratePattern": "",
-						"hidden": false,
-						"id": "text2063623452",
-						"max": 0,
-						"min": 0,
-						"name": "status",
 						"pattern": "",
 						"presentable": false,
 						"primaryKey": false,
@@ -863,6 +849,34 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "bool"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1574812785",
+						"max": 0,
+						"min": 0,
+						"name": "error",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": false,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "select2063623452",
+						"maxSelect": 1,
+						"name": "status",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "select",
+						"values": [
+							"done",
+							"error"
+						]
 					},
 					{
 						"hidden": false,
@@ -1119,6 +1133,35 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "relation"
+					},
+					{
+						"hidden": false,
+						"id": "select3303056927",
+						"maxSelect": 1,
+						"name": "team",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "select",
+						"values": [
+							"teamA",
+							"teamB"
+						]
+					},
+					{
+						"hidden": false,
+						"id": "select325763347",
+						"maxSelect": 1,
+						"name": "result",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "select",
+						"values": [
+							"won",
+							"lost",
+							"draw"
+						]
 					},
 					{
 						"hidden": false,

@@ -2,9 +2,10 @@ package index
 
 import (
 	"aibattle/pages"
+	"html/template"
+
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
-	"html/template"
 )
 
 type Data struct {
@@ -17,5 +18,14 @@ func Index(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Re
 			User: e.Auth,
 		}
 		return pages.Render(e, templ, "index.gohtml", data)
+	}
+}
+
+func Landing(app *pocketbase.PocketBase, templ *template.Template) func(e *core.RequestEvent) error {
+	return func(e *core.RequestEvent) error {
+		data := &Data{
+			User: e.Auth,
+		}
+		return pages.Render(e, templ, "landing.gohtml", data)
 	}
 }

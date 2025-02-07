@@ -103,30 +103,35 @@
           </div>
         </div>
       </form>
-      <form action="/prompt/{{.ID}}/activate" method="POST" class="mt-2 card bg-base-100 shadow-xl">
-        <div class="card-body">
-            {{if eq .Status ""}}
-              <div class="flex justify-center my-4">
-                <span class="loading loading-spinner loading-lg"></span>
-                <span class="align-middle">
+        {{if ne .Status "unknown"}}
+          <form action="/prompt/{{.ID}}/activate" method="POST"
+                class="mt-2 card bg-base-100 shadow-xl">
+            <div class="card-body">
+                {{if eq .Status ""}}
+                  <div class="flex justify-center my-4">
+                    <span class="loading loading-spinner loading-lg"></span>
+                    <span class="align-middle">
                   Please update page to see result. Creating new prompt may take a couple of minutes.
                 </span>
-              </div>
-            {{else}}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Output</span>
-                </label>
-                <textarea class="textarea textarea-bordered h-96" disabled>{{.Output}}</textarea>
-              </div>
-            {{end}}
-          <div class="flex justify-end">
-            <button type="submit" class="btn btn-primary" {{if eq .Status ""}}disabled{{end}}>
-              Activate
-            </button>
-          </div>
-        </div>
-      </form>
+                  </div>
+                {{else}}
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Output</span>
+                    </label>
+                    <textarea class="textarea textarea-bordered h-96"
+                              disabled>{{.Output}}</textarea>
+                  </div>
+                  <div class="flex justify-end">
+                    <button type="submit" class="btn btn-primary"
+                            {{if eq .Status ""}}disabled{{end}}>
+                      Activate
+                    </button>
+                  </div>
+                {{end}}
+            </div>
+          </form>
+        {{end}}
     </div>
   </div>
 {{end}}
