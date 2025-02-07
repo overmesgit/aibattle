@@ -51,7 +51,7 @@ func GetGameDescription() (string, error) {
 		world.SKILL2, ", ",
 	)
 
-	jsonState, err := json.Marshal(NextTurnInput{state, 1})
+	jsonState, err := json.MarshalIndent(NextTurnInput{state, 1}, "", "  ")
 	if err != nil {
 		return "", err
 	}

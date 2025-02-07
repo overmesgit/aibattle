@@ -1,7 +1,6 @@
 ## TODO
 
 * landing page and rule explanation
-* show context at the prompt page
 * deploy to the internet
 
 ## Ideas

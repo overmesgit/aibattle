@@ -66,6 +66,14 @@
             <label class="label">
               <span class="label-text">Input Text</span>
             </label>
+            <div tabindex="0"
+                 class="my-2 collapse collapse-arrow border-base-300 bg-base-200 border">
+              <input type="checkbox"/>
+              <div class="collapse-title text-xl font-medium">Default prompt</div>
+              <div class="collapse-content">
+                <p style="white-space: pre; width: 800px">{{.DefaultPrompt}}</p>
+              </div>
+            </div>
             <textarea id="prompt-input" name="text"
                       class="textarea textarea-bordered h-24">{{.Text}}</textarea>
             <div class="flex justify-end m-1">

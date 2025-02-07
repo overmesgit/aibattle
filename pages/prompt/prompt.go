@@ -1,6 +1,7 @@
 package prompt
 
 import (
+	"aibattle/game/rules"
 	"aibattle/pages"
 	"fmt"
 	"html/template"
@@ -18,10 +19,11 @@ type Data struct {
 	Text   string
 	Errors []string
 
-	ID      string
-	Output  string
-	Status  string
-	Prompts []*core.Record
+	ID            string
+	Output        string
+	Status        string
+	DefaultPrompt string
+	Prompts       []*core.Record
 }
 
 func GetPrompts(app *pocketbase.PocketBase, userId string) ([]*core.Record, error) {
@@ -147,15 +149,19 @@ func ActivatePrompt(
 func defaultData(
 	user *core.Record, app *pocketbase.PocketBase, id string,
 ) (*core.Record, Data, error) {
-	// TODO: check user
 	prompts, err := GetPrompts(app, user.Id)
 	if err != nil {
 		return nil, Data{}, err
 	}
 
+	gameRules, err := rules.GetGameDescription()
+	if err != nil {
+		return nil, Data{}, err
+	}
 	data := Data{
-		User:    user,
-		Prompts: prompts,
+		User:          user,
+		Prompts:       prompts,
+		DefaultPrompt: gameRules,
 	}
 
 	if id != "" {

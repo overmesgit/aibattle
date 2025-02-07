@@ -20,13 +20,16 @@ Units descriptions:
 {{.UnitsDescription}}
 
 Each player is represented as a Go lang function.
-Function must accept one parameters. Encoded in json, byte strings.
-It is a game state with UnitID for which program must generate next actions.
+GetTurnActions(input NextTurnInput) ActionResponse
+This function accepts one parameter:
+ input - byte string encoded json.
+
+Input argument is a game state with UnitID for which program must generate next actions.
+Input example:
 {{.JSONState}}
 
-
-Function returns next action for the unit specified in the second parameter as a json byte string.
-Function return format:
+Function returns ActionResponse, which is next action for the unit specified in the second parameter as a json byte string.
+ActionResponse example:
 {{.NextActionExample}}
 
 Possible actions:
