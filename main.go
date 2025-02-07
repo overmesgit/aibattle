@@ -11,15 +11,16 @@ import (
 	"aibattle/pages/middleware"
 	"aibattle/pages/prompt"
 	"context"
+	"log"
+	"net/http"
+	"os"
+	"strings"
+
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/router"
-	"log"
-	"net/http"
-	"os"
-	"strings"
 )
 
 func main() {
@@ -64,7 +65,9 @@ func main() {
 			)
 
 			go func() {
-				battler.RunBattleTask(app)
+				if os.Getenv("DISABLE_BATTLE") != "true" {
+					battler.RunBattleTask(app)
+				}
 			}()
 
 			go func() {

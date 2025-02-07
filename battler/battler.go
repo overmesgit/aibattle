@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/pocketbase/dbx"
@@ -19,12 +21,18 @@ import (
 )
 
 func RunBattleTask(app *pocketbase.PocketBase) {
+	battleTimeoutStr := os.Getenv("BATTLE_TIMEOUT")
+	battleTimeout, err := strconv.ParseInt(battleTimeoutStr, 10, 64)
+	if err != nil {
+		log.Println("BATTLE_TIMEOUT env variable is not a number")
+		battleTimeout = 10
+	}
 	for {
 		err := RunBattle(app)
 		if err != nil {
 			log.Println(err)
 		}
-		time.Sleep(30 * time.Second)
+		time.Sleep(time.Duration(battleTimeout) * time.Second)
 	}
 }
 

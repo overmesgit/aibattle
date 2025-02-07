@@ -5,6 +5,7 @@
 
 ## Ideas
 
+* remove dead units from game
 * battles frequency
 * check for claude ai errors
 * add randomness to battle matching
@@ -13,3 +14,6 @@
 * add another apis
 * update leader board in realtime
 * update prompt status in real time
+* remove old battles
+* pagination for battles
+* better goroutines

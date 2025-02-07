@@ -5,28 +5,48 @@
   <div class="hero min-h-screen bg-base-200">
     <div class="hero-content text-center">
       <div class="max-w-4xl">
-        <h1 class="text-5xl font-bold mb-8">AI Battle Arena</h1>
+        <h1 class="text-5xl font-bold mb-8">🤖 AI Battle Arena</h1>
         <p class="py-6 text-xl">
-          Welcome to the ultimate AI programming challenge! Create, train and battle your AI agents
-          in a tactical turn-based combat arena.
+          Welcome to the ultimate AI programming challenge!
+          <br>
+          Create, train and battle your AI agents in a tactical turn-based combat arena. ⚔️
         </p>
+
+        <div class="divider">🎮 GAME OVERVIEW</div>
+
+        <div class="card bg-base-100 shadow-xl mb-8">
+          <div class="card-body">
+            <h2 class="card-title justify-center mb-4">⚔️ Turn-based Tactical Combat</h2>
+            <div class="flex justify-center">
+              <div class="text-left">
+                <p class="mb-2">🏰 • Two teams face off on a 20x20 grid battlefield</p>
+                <p class="mb-2">🦸 • Each team has 4 unique units: Warrior, Healer, Mage and Rogue</p>
+                <p class="mb-2">✨ • Units have different abilities like movement, attacks and special skills</p>
+                <p class="mb-2">⚡ • Initiative system determines turn order</p>
+                <p class="mb-2">🏃 • Units can move and perform one action per turn</p>
+                <p class="mb-2">⚔️ • Battle continues until one team is eliminated</p>
+                <p>🏆 • Victory achieved by eliminating all enemy units</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="flex flex-col gap-4">
             {{if .User}}
-              <a href="/prompt" class="btn btn-primary">Create Your AI</a>
-              <a href="/battle" class="btn">View Battles</a>
+              <a href="/prompt" class="btn btn-primary">🤖 Create Your AI</a>
+              <a href="/battle" class="btn">🎮 View Battles</a>
             {{else}}
-              <a href="/signup" class="btn btn-primary">Get Started</a>
-              <a href="/login" class="btn btn-ghost">Login</a>
+              <a href="/signup" class="btn btn-primary">🚀 Get Started</a>
+              <a href="/login" class="btn btn-ghost">🔑 Login</a>
             {{end}}
         </div>
 
-        <div class="divider">HOW IT WORKS</div>
+        <div class="divider">📖 HOW IT WORKS</div>
 
         <div class="flex flex-col gap-8 my-8">
           <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
-              <h2 class="card-title justify-center">1. Create Your AI</h2>
+              <h2 class="card-title justify-center">1. 🤖 Create Your AI</h2>
               <p>Sign up and create your AI agent using text prompt with 300 characters max.</p>
             </div>
             <figure class="px-10 pb-10">
@@ -36,7 +56,7 @@
 
           <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
-              <h2 class="card-title justify-center">2. Activate Your AI</h2>
+              <h2 class="card-title justify-center">2. ⚡ Activate Your AI</h2>
               <p>Choose and activate the prompt you want to use for battles.</p>
             </div>
             <figure class="px-10 pb-10">
@@ -46,7 +66,7 @@
 
           <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
-              <h2 class="card-title justify-center">3. View Your Battles</h2>
+              <h2 class="card-title justify-center">3. 🎮 View Your Battles</h2>
               <p>See the history of your AI battles and their outcomes.</p>
             </div>
             <figure class="px-10 pb-10">
@@ -56,7 +76,7 @@
 
           <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
-              <h2 class="card-title justify-center">4. Analyze Battles</h2>
+              <h2 class="card-title justify-center">4. 📊 Analyze Battles</h2>
               <p>Watch detailed battle replays to improve your strategy.</p>
             </div>
             <figure class="px-10 pb-10">
@@ -66,7 +86,7 @@
 
           <div class="card bg-base-100 shadow-xl col-span-2">
             <div class="card-body">
-              <h2 class="card-title justify-center">5. Climb the Leaderboard</h2>
+              <h2 class="card-title justify-center">5. 🏆 Climb the Leaderboard</h2>
               <p>Compete against other players and rise through the ranks!</p>
             </div>
             <figure class="px-10 pb-10">
