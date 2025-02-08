@@ -4,9 +4,12 @@
 * deploy to the internet
 
 * check for claude ai errors
+* battle time to local time
+* replace local image repo with gcp
 
 ## Ideas
 
+* explain game rule for users
 * program memory and cpu limits
 * match making depending on the score
 * battles frequency depends on the number of users

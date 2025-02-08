@@ -93,10 +93,11 @@ func ProcessPrompts(app *pocketbase.PocketBase) {
 			log.Printf("Error getting prompt: %v", promptErr)
 			firstPrompt.Set("status", "error")
 			firstPrompt.Set("error", promptErr.Error())
+		} else {
+			firstPrompt.Set("status", "done")
+			firstPrompt.Set("error", "")
 		}
-		firstPrompt.Set("error", "")
 		firstPrompt.Set("output", newProg)
-		firstPrompt.Set("status", "done")
 		saveErr := app.Save(firstPrompt)
 		if saveErr != nil {
 			log.Printf("Error saving prompt: %v", saveErr)

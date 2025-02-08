@@ -4,7 +4,9 @@ import (
 	"aibattle/game/rules"
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,7 +20,7 @@ func GetProgram(ctx context.Context, promptID string, prompt string) (string, er
 	if err != nil {
 		return "", err
 	}
-	text, promptErr := GetProgramWithPrompt(ctx, prompt, err, gameRules)
+	text, promptErr := GetProgramWithPrompt(ctx, prompt, gameRules)
 	if promptErr != nil {
 		return text, promptErr
 	}
@@ -28,7 +30,7 @@ func GetProgram(ctx context.Context, promptID string, prompt string) (string, er
 	if err != nil {
 		return text, err
 	}
-	buildErr := buildImage(err, generatedCode, promptID)
+	buildErr := buildImage(generatedCode, promptID)
 	if buildErr != nil {
 		return text, fmt.Errorf("error building image %s", buildErr)
 	}
@@ -36,7 +38,7 @@ func GetProgram(ctx context.Context, promptID string, prompt string) (string, er
 }
 
 func GetProgramWithPrompt(
-	ctx context.Context, prompt string, err error, rules string,
+	ctx context.Context, prompt string, rules string,
 ) (string, error) {
 	messages := []anthropic.MessageParam{
 		anthropic.NewUserMessage(anthropic.NewTextBlock(prompt)),
@@ -70,7 +72,7 @@ func GetProgramWithPrompt(
 	return text, nil
 }
 
-func buildImage(err error, generatedCode string, promptID string) error {
+func buildImage(generatedCode string, promptID string) error {
 	// Create temporary directory
 	tmpDir, err := os.MkdirTemp("", "aibattle-*")
 	defer os.RemoveAll(tmpDir)
@@ -78,15 +80,82 @@ func buildImage(err error, generatedCode string, promptID string) error {
 		return err
 	}
 
-	tmpDir, errMain := CreateMainGoInTmpFolder(tmpDir, generatedCode)
-	if errMain != nil {
-		return errMain
+	log.Println("Getting compiled program")
+	compileErr := getCompiledProgram(err, generatedCode, tmpDir)
+	if compileErr != nil {
+		return compileErr
 	}
+
+	buildErr := prepareDockerFile(err, tmpDir)
+	if buildErr != nil {
+		return buildErr
+	}
+
+	log.Println("Building image")
 	errBuild := BuildImageInTmpFolder(tmpDir, promptID)
 	if errBuild != nil {
 		return errBuild
 	}
 	return nil
+}
+
+func prepareDockerFile(err error, tmpDir string) error {
+	// Create minimal Dockerfile
+	dockerfile := `FROM alpine:3.21
+WORKDIR /app
+COPY main .
+CMD ["./main"]`
+
+	dockerfilePath := filepath.Join(tmpDir, "Dockerfile")
+	err = os.WriteFile(dockerfilePath, []byte(dockerfile), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getCompiledProgram(err error, generatedCode string, tmpDir string) error {
+	// Compile program using remote service
+	compilerURL := os.Getenv("COMPILER_URL")
+	if compilerURL == "" {
+		return fmt.Errorf("no compiler URL set")
+	}
+	login := os.Getenv("COMPILER_LOGIN")
+	password := os.Getenv("COMPILER_PASSWORD")
+	req, err := http.NewRequest("POST", compilerURL, strings.NewReader(generatedCode))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header.Set("Content-Type", "text/plain")
+	req.SetBasicAuth(login, password)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	defer resp.Body.Close()
+
+	if err != nil {
+		return fmt.Errorf("failed to compile: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("compilation failed: %s", string(body))
+	}
+
+	// Save compiled binary
+	binaryPath := filepath.Join(tmpDir, "main")
+	binaryFile, err := os.Create(binaryPath)
+	if err != nil {
+		return err
+	}
+	defer binaryFile.Close()
+
+	_, err = io.Copy(binaryFile, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	// Make binary executable
+	return os.Chmod(binaryPath, 0755)
 }
 
 func AddGeneratedCodeToTheGameTemplate(txt string) (string, error) {
@@ -121,35 +190,6 @@ func getContentBetweenTags(content, startTag, endTag string) (string, error) {
 		return "", fmt.Errorf("text between tags are empty")
 	}
 	return tagText, nil
-}
-
-func CreateMainGoInTmpFolder(tmpDir string, generatedCode string) (string, error) {
-	// Create main.go file
-	mainPath := filepath.Join(tmpDir, "main.go")
-	err := os.WriteFile(mainPath, []byte(generatedCode), 0644)
-	if err != nil {
-		return "", err
-	}
-
-	// Create Dockerfile
-	dockerfile := `FROM golang:1.23-alpine AS builder
-WORKDIR /app
-COPY main.go .
-RUN go mod init aibattle && go build -o main
-
-FROM alpine:3.21
-WORKDIR /app
-COPY --from=builder /app/main .
-CMD ["./main"]`
-
-	dockerfilePath := filepath.Join(tmpDir, "Dockerfile")
-	err = os.WriteFile(dockerfilePath, []byte(dockerfile), 0644)
-	if err != nil {
-		os.RemoveAll(tmpDir)
-		return "", err
-	}
-
-	return tmpDir, nil
 }
 
 func BuildImageInTmpFolder(tmpDir string, promptID string) error {
