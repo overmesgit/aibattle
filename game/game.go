@@ -180,6 +180,11 @@ func RunGame() (Result, error) {
 			}
 
 		}
+		gameState.Units = lo.Filter(
+			gameState.Units, func(unit *world.Unit, index int) bool {
+				return unit.IsAlive()
+			},
+		)
 		turnLog.Actions = turnActions
 		result.Turns = append(result.Turns, turnLog)
 	}

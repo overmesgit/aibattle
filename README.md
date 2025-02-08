@@ -6,6 +6,7 @@
 ## Ideas
 
 * remove dead units from game
+* program memory and cpu limits
 * battles frequency
 * check for claude ai errors
 * add randomness to battle matching
@@ -17,3 +18,4 @@
 * remove old battles
 * pagination for battles
 * better goroutines
+* rebuild games if game rules were updated

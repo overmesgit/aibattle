@@ -49,13 +49,24 @@ func GetInitialGameState() GameState {
 	}
 }
 
+var unitNotFoundErr = errors.New("unit not found")
+
 func (state *GameState) FindUnit(position Position) (*Unit, error) {
 	for _, unit := range state.Units {
-		if unit.Position == position {
+		if unit.Position == position && unit.IsAlive() {
+
 			return unit, nil
 		}
 	}
-	return nil, errors.New("unit not found")
+	return nil, unitNotFoundErr
+}
+
+func (state *GameState) IsOccupied(position Position) bool {
+	_, err := state.FindUnit(position)
+	if errors.Is(err, unitNotFoundErr) {
+		return false
+	}
+	return true
 }
 
 func (state *GameState) CopyUnits() []Unit {

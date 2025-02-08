@@ -19,10 +19,9 @@ func (state *GameState) MoveUnit(unit *Unit, target *Position) error {
 	}
 
 	// Check if target position is occupied
-	for _, otherUnit := range state.Units {
-		if otherUnit.Position == *target && otherUnit.IsAlive() {
-			return errors.New("target is occupied")
-		}
+	occupied := state.IsOccupied(*target)
+	if occupied {
+		return errors.New("target is occupied")
 	}
 
 	unit.Position = *target

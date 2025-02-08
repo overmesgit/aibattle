@@ -2,7 +2,6 @@ package world
 
 import (
 	"errors"
-	"github.com/samber/lo"
 )
 
 func (state *GameState) AttackUnit(unit *Unit, target *Position) error {
@@ -24,13 +23,6 @@ func (state *GameState) AttackUnit(unit *Unit, target *Position) error {
 	}
 
 	targetUnit.HP -= unit.Actions.Attack1.Damage
-	if targetUnit.HP <= 0 {
-		state.Units = lo.Filter(
-			state.Units, func(item *Unit, index int) bool {
-				return targetUnit.ID != item.ID
-			},
-		)
-	}
 	return nil
 
 }
