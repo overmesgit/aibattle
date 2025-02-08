@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/samber/lo"
 	"log"
 	"math"
 	"os"
@@ -149,13 +150,15 @@ func getNextPrompt(app *pocketbase.PocketBase) (*core.Record, *core.Record, erro
 		Join("LEFT JOIN", "score", dbx.NewExp("score.user = prompt.user")).
 		AndWhere(dbx.HashExp{"prompt.active": true}).
 		OrderBy("score.updated ASC").
-		Limit(2).
+		Limit(5).
 		All(&records)
 
 	if err != nil {
 		return nil, nil, fmt.Errorf("error fetching active prompts: %w", err)
 	}
 
+	// get 5 records, shuffle them and get top 2
+	records = lo.Shuffle(records)
 	// Need at least 2 prompts for battle
 	if len(records) < 2 {
 		return nil, nil, errors.New("not enough records")
