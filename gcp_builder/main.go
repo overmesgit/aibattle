@@ -76,7 +76,12 @@ func handleCompile(w http.ResponseWriter, r *http.Request) {
 	tmpfile.Close()
 
 	outputFile := tmpfile.Name() + ".out"
-	cmd := exec.Command("go", "build", "-o", outputFile, tmpfile.Name())
+	cmd := exec.Command("go", "build", "-o", outputFile, "-ldflags=-s -w", tmpfile.Name())
+	cmd.Env = append(os.Environ(),
+		"GOOS=linux",
+		"GOARCH=amd64",
+		"CGO_ENABLED=0",
+	)
 	stdErrBuf := new(strings.Builder)
 	cmd.Stderr = stdErrBuf
 	stdOutBuf := new(strings.Builder)

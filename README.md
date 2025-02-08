@@ -6,6 +6,8 @@
 * check for claude ai errors
 * battle time to local time
 * replace local image repo with gcp
+* message about 0 active prompts
+* kill all docker images after and before running
 
 ## Ideas
 

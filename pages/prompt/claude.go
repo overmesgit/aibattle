@@ -149,10 +149,11 @@ func getCompiledProgram(err error, generatedCode string, tmpDir string) error {
 	}
 	defer binaryFile.Close()
 
-	_, err = io.Copy(binaryFile, resp.Body)
+	written, err := io.Copy(binaryFile, resp.Body)
 	if err != nil {
 		return err
 	}
+	fmt.Println("written bytes: ", written)
 
 	// Make binary executable
 	return os.Chmod(binaryPath, 0755)
