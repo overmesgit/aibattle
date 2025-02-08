@@ -1,12 +1,14 @@
 package pages
 
 import (
+	"fmt"
 	"github.com/Masterminds/sprig"
 	"github.com/pocketbase/pocketbase/core"
 	"html/template"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 func Render(e *core.RequestEvent, templ *template.Template, filename string, data any) error {
@@ -16,7 +18,12 @@ func Render(e *core.RequestEvent, templ *template.Template, filename string, dat
 		return cloneErr
 	}
 	dir := filepath.Dir(file)
-	_, parseErr := clone.ParseFiles(filepath.Join(dir, filename))
+	splitPath := strings.Split(dir, "aibattle/")
+	if len(splitPath) < 2 {
+		return fmt.Errorf("invalid dir for template: %s", dir)
+	}
+	absolute := splitPath[1]
+	_, parseErr := clone.ParseFiles(filepath.Join(absolute, filename))
 	if parseErr != nil {
 		return parseErr
 	}

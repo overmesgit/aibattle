@@ -8,6 +8,7 @@
 ## Ideas
 
 * program memory and cpu limits
+* match making depending on the score
 * battles frequency depends on the number of users
 * disable prompt update if it is in processing
 * add python3, js
