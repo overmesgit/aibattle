@@ -1,16 +1,13 @@
 ## TODO
 
-* landing page and rule explanation
-* deploy to the internet
-
-* check for claude ai errors
-* battle time to local time
-* replace local image repo with gcp
-* message about 0 active prompts
 * kill all docker images after and before running
+* run prompt immediately after activation
 
 ## Ideas
 
+* battle time to local time
+* replace local image repo with gcp
+* add number of matches on leaderboard
 * explain game rule for users
 * program memory and cpu limits
 * match making depending on the score
@@ -25,3 +22,7 @@
 * better goroutines
 * rebuild games if game rules were updated
 * write test for a game
+
+## Share
+
+Anthropic discord

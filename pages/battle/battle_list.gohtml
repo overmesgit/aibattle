@@ -19,7 +19,7 @@
                           <span class="badge">{{.Opponent}}</span>
                         </div>
                         <div class="text-sm text-base-content/70">Prompt id: {{.PromptID}}</div>
-                        <div class="text-sm text-base-content/70">{{.Date | date "2006-01-02 15:04:05"}}</div>
+                        <div class="text-sm text-base-content/70">{{.Date | date "2006-01-02 15:04:05"}} UTC</div>
                       </div>
                         {{if eq .Result "won"}}
                           <div class="badge badge-primary badge-lg m-1">Won</div>

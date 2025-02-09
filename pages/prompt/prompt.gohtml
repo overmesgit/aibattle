@@ -27,6 +27,19 @@
           <div class="mb-4">
             <a href="/prompt" class="btn btn-neutral w-full">Create New Prompt</a>
           </div>
+          {{$hasActive := false}}
+          {{range .Prompts}}
+            {{if .GetBool "active"}}
+              {{$hasActive = true}}
+            {{end}}
+          {{end}}
+          {{if not $hasActive}}
+            <div class="alert alert-warning shadow-lg mb-4">
+              <div>
+                <span>You have no active prompt. Please activate one to participate in battles.</span>
+              </div>
+            </div>
+          {{end}}
           <ul class="menu">
               {{range .Prompts}}
                 <li>

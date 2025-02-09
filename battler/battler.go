@@ -9,12 +9,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/samber/lo"
 	"log"
 	"math"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
@@ -22,18 +23,47 @@ import (
 )
 
 func RunBattleTask(app *pocketbase.PocketBase) {
-	battleTimeoutStr := os.Getenv("BATTLE_TIMEOUT")
-	battleTimeout, err := strconv.ParseInt(battleTimeoutStr, 10, 64)
-	if err != nil {
-		log.Println("BATTLE_TIMEOUT env variable is not a number")
-		battleTimeout = 10
+	minSleepDuration := 10 * time.Second
+	timeBetween := os.Getenv("TIME_BETWEEN_BATTLES_MIN")
+	parseInt, err := strconv.ParseInt(timeBetween, 10, 64)
+	// default is 3 minutes if env isn't set
+	targetBattlesPerUser := 3 * time.Minute
+	if err == nil {
+		targetBattlesPerUser = time.Duration(parseInt) * time.Minute
+	} else {
+		fmt.Println("TIME_BETWEEN_BATTLES_MIN", err)
 	}
+
 	for {
-		err := RunBattle(app)
+		// Count active prompts/users
+		var records []*core.Record
+		err := app.RecordQuery("prompt").
+			AndWhere(dbx.HashExp{"active": true}).
+			All(&records)
+
+		if err != nil {
+			log.Printf("Error getting active prompt count: %v", err)
+			time.Sleep(minSleepDuration)
+			continue
+		}
+
+		activePrompts := len(records)
+		if activePrompts < 2 {
+			time.Sleep(minSleepDuration)
+			continue
+		}
+
+		// Calculate sleep duration to achieve ~1 battle per user per 5 minutes
+		// For n users we need n/2 battles every 5 minutes
+		// So sleep duration = 5min / (n/2) = 10min / n
+		sleepDuration := targetBattlesPerUser / time.Duration(activePrompts)
+
+		err = RunBattle(app)
 		if err != nil {
 			log.Println(err)
 		}
-		time.Sleep(time.Duration(battleTimeout) * time.Second)
+
+		time.Sleep(sleepDuration)
 	}
 }
 
