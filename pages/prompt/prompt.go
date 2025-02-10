@@ -1,6 +1,7 @@
 package prompt
 
 import (
+	"aibattle/battler"
 	"aibattle/game/rules"
 	"aibattle/pages"
 	"fmt"
@@ -113,6 +114,8 @@ func UpdatePrompt(
 	}
 }
 
+var promptsRunsAfterActivation = make(map[string]time.Time)
+
 func ActivatePrompt(
 	app *pocketbase.PocketBase, templ *template.Template,
 ) func(e *core.RequestEvent) error {
@@ -142,6 +145,12 @@ func ActivatePrompt(
 		if saveError != nil {
 			return saveError
 		}
+
+		if time.Now().Sub(promptsRunsAfterActivation[e.Auth.Id]) > 3*time.Minute {
+			promptsRunsAfterActivation[e.Auth.Id] = time.Now()
+			battler.BattleChannel <- prompt.Id
+		}
+
 		return e.Redirect(http.StatusFound, "/prompt/"+prompt.Id)
 	}
 }

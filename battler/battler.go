@@ -9,11 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"math"
-	"os"
-	"strconv"
-	"time"
 
 	"github.com/samber/lo"
 
@@ -22,56 +18,12 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func RunBattleTask(app *pocketbase.PocketBase) {
-	minSleepDuration := 10 * time.Second
-	timeBetween := os.Getenv("TIME_BETWEEN_BATTLES_MIN")
-	parseInt, err := strconv.ParseInt(timeBetween, 10, 64)
-	// default is 3 minutes if env isn't set
-	targetBattlesPerUser := 3 * time.Minute
-	if err == nil {
-		targetBattlesPerUser = time.Duration(parseInt) * time.Minute
-	} else {
-		fmt.Println("TIME_BETWEEN_BATTLES_MIN", err)
+func RunBattle(app *pocketbase.PocketBase, nextPromptID string) error {
+	prompt1, prompt2, prompt2Err := getNextPrompt(app, nextPromptID)
+	if prompt2Err != nil {
+		return prompt2Err
 	}
 
-	for {
-		// Count active prompts/users
-		var records []*core.Record
-		err := app.RecordQuery("prompt").
-			AndWhere(dbx.HashExp{"active": true}).
-			All(&records)
-
-		if err != nil {
-			log.Printf("Error getting active prompt count: %v", err)
-			time.Sleep(minSleepDuration)
-			continue
-		}
-
-		activePrompts := len(records)
-		if activePrompts < 2 {
-			time.Sleep(minSleepDuration)
-			continue
-		}
-
-		// Calculate sleep duration to achieve ~1 battle per user per 5 minutes
-		// For n users we need n/2 battles every 5 minutes
-		// So sleep duration = 5min / (n/2) = 10min / n
-		sleepDuration := targetBattlesPerUser / time.Duration(activePrompts)
-
-		err = RunBattle(app)
-		if err != nil {
-			log.Println(err)
-		}
-
-		time.Sleep(sleepDuration)
-	}
-}
-
-func RunBattle(app *pocketbase.PocketBase) error {
-	prompt1, prompt2, promptErr := getNextPrompt(app)
-	if promptErr != nil {
-		return promptErr
-	}
 	user1Score, user2Score, scoreErr := getScores(
 		app, prompt1.GetString("user"), prompt2.GetString("user"),
 	)
@@ -174,7 +126,9 @@ func saveBattle(app *pocketbase.PocketBase, result game.Result) (*core.Record, e
 	return battle, nil
 }
 
-func getNextPrompt(app *pocketbase.PocketBase) (*core.Record, *core.Record, error) {
+func getNextPrompt(
+	app *pocketbase.PocketBase, nextPromptID string,
+) (*core.Record, *core.Record, error) {
 	var records []*core.Record
 	err := app.RecordQuery("prompt").
 		Join("LEFT JOIN", "score", dbx.NewExp("score.user = prompt.user")).
@@ -194,6 +148,14 @@ func getNextPrompt(app *pocketbase.PocketBase) (*core.Record, *core.Record, erro
 		return nil, nil, errors.New("not enough records")
 	}
 	prompt1, prompt2 := records[0], records[1]
+
+	if nextPromptID != "" {
+		nextPrompt, err := app.FindRecordById("prompt", nextPromptID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error finding nextPrompt: %w", err)
+		}
+		return prompt1, nextPrompt, nil
+	}
 	return prompt1, prompt2, nil
 }
 
@@ -255,7 +217,7 @@ func createBattleResult(
 func getScores(
 	app *pocketbase.PocketBase, user1 string, user2 string,
 ) (*core.Record, *core.Record, error) {
-	scores := []*core.Record{}
+	var scores []*core.Record
 	err := app.RecordQuery("score").
 		AndWhere(
 			dbx.HashExp{
