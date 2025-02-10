@@ -1,12 +1,12 @@
 ## TODO
 
-* cache go templates with env variable flag
 * add python3, js
-* run at least one round to test a program
-* mobile friendly
 
 ## Ideas
 
+* cache go templates with env variable flag
+* mobile friendly
+* run at least one round to test a program
 * better to catch errors in the container and return error.
 * get logs from inside the docker containers with agents
 * battle time to local time
