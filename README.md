@@ -1,7 +1,7 @@
 ## TODO
 
 * kill all docker images after and before running
-* run prompt immediately after activation
+* cache go templates with env variable flag
 
 ## Ideas
 
