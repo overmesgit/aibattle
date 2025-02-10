@@ -52,6 +52,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 )
@@ -128,6 +129,8 @@ func PlayTurn(inputJSON []byte) ([]byte, error) {
 		return nil, err
 	}
 	response := GetTurnActions(input)
+	fmt.Printf("input: %+v\n",  input)
+	fmt.Printf("response: %+v\n", response)
 	return json.Marshal(response)
 }
 
@@ -159,6 +162,7 @@ func HandleTurn(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	fmt.Println("starting game server")
 	http.HandleFunc("/", HandleTurn)
 	http.ListenAndServe(":8080", nil)
 }

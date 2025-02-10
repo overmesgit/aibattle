@@ -84,7 +84,7 @@ func GetTurnAction(team int, state []byte) ([]byte, error) {
 	return body, nil
 }
 
-func GetNextAction(state world.GameState, unit *world.Unit) TurnAction {
+func GetNextAction(state world.GameState, unit *world.Unit) (TurnAction, error) {
 	jsonState, err := json.Marshal(
 		NextTurnInput{
 			State:  state,
@@ -92,25 +92,33 @@ func GetNextAction(state world.GameState, unit *world.Unit) TurnAction {
 		},
 	)
 	if err != nil {
-		panic(err)
+		log.Println("error marshal next turn input", err)
+		return TurnAction{}, err
 	}
 
 	nextMoveJson, err := GetTurnAction(unit.Team, jsonState)
+	if err != nil {
+		log.Println("error getting next action", err)
+		return TurnAction{}, err
+	}
 
 	nextMove := TurnAction{
 		UnitID: unit.ID,
 	}
 	err = json.Unmarshal(nextMoveJson, &nextMove)
 	if err != nil {
-		log.Println(err)
+		log.Println("error unmarshal next move", err)
+		return TurnAction{}, err
 	}
-	return nextMove
+	return nextMove, nil
 }
 
 type Result struct {
-	Turns     []TurnLog     `json:"turns"`
-	Winner    int           `json:"winner"`
-	InitUnits []*world.Unit `json:"init_units"`
+	Turns       []TurnLog     `json:"turns"`
+	Winner      int           `json:"winner"`
+	InitUnits   []*world.Unit `json:"init_units"`
+	TeamOneLogs string        `json:"team_one_logs"`
+	TeamTwoLogs string        `json:"team_two_logs"`
 }
 
 func RunGame() (Result, error) {
@@ -154,8 +162,16 @@ func RunGame() (Result, error) {
 				continue
 			}
 
-			nextAction := GetNextAction(gameState, unit)
+			nextAction, actionErr := GetNextAction(gameState, unit)
 			turnActions = append(turnActions, nextAction)
+			if actionErr != nil {
+				nextAction.UnitAction = [2]*UnitAction{
+					{Error: fmt.Sprintf(
+						"error reading response from the container: %s", actionErr.Error(),
+					)},
+				}
+				continue
+			}
 
 			err := checkActionsAreUnique(nextAction)
 			if err != nil {

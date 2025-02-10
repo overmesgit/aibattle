@@ -133,6 +133,7 @@ func getNextPrompt(
 	err := app.RecordQuery("prompt").
 		Join("LEFT JOIN", "score", dbx.NewExp("score.user = prompt.user")).
 		AndWhere(dbx.HashExp{"prompt.active": true}).
+		AndWhere(dbx.Not(dbx.HashExp{"prompt.id": nextPromptID})).
 		OrderBy("score.updated ASC").
 		Limit(5).
 		All(&records)

@@ -2600,6 +2600,10 @@ details.collapse summary::-webkit-details-marker {
   height: 1rem;
 }
 
+.h-48 {
+  height: 12rem;
+}
+
 .h-6 {
   height: 1.5rem;
 }
@@ -2720,6 +2724,10 @@ details.collapse summary::-webkit-details-marker {
 
 .overflow-y-auto {
   overflow-y: auto;
+}
+
+.whitespace-pre {
+  white-space: pre;
 }
 
 .rounded {
@@ -2888,6 +2896,10 @@ details.collapse summary::-webkit-details-marker {
 
 .align-middle {
   vertical-align: middle;
+}
+
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .text-2xl {

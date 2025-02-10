@@ -1,11 +1,14 @@
 ## TODO
 
-* kill all docker images after and before running
 * cache go templates with env variable flag
 * add python3, js
+* run at least one round to test a program
+* mobile friendly
 
 ## Ideas
 
+* better to catch errors in the container and return error.
+* get logs from inside the docker containers with agents
 * battle time to local time
 * replace local image repo with gcp
 * add number of matches on leaderboard

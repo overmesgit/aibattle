@@ -4,6 +4,8 @@ import (
 	"aibattle/game"
 	"context"
 	"fmt"
+	"github.com/samber/lo"
+	"log"
 	"os"
 	"os/exec"
 
@@ -36,8 +38,10 @@ func GetBattleResult(
 	if err != nil {
 		return game.Result{}, fmt.Errorf("failed to start containers: %v", err)
 	}
-	// Let containers run for a while
+
 	result, err := game.RunGame()
+	result = setLogs(ctx, result, env)
+
 	if err != nil {
 		return game.Result{}, err
 	}
@@ -56,4 +60,38 @@ func GetBattleResult(
 	}
 	// For now just return placeholder result
 	return result, nil
+}
+
+func setLogs(ctx context.Context, result game.Result, env []string) game.Result {
+	teamOneLog, teamOneErr := GetServiceLogs(ctx, "team_one", env)
+	if teamOneErr != nil {
+		log.Println(teamOneErr)
+	}
+	teamTwoLog, teamTwoErr := GetServiceLogs(ctx, "team_two", env)
+	if teamTwoErr != nil {
+		log.Println(teamTwoErr)
+	}
+
+	logSize := 1000
+	result.TeamOneLogs = lo.Substring(teamOneLog, -logSize, uint(logSize))
+	result.TeamTwoLogs = lo.Substring(teamTwoLog, -logSize, uint(logSize))
+	return result
+}
+
+func GetServiceLogs(ctx context.Context, serviceName string, env []string) (string, error) {
+	logs := exec.CommandContext(
+		ctx, "docker", "compose",
+		"-f", "docker_test/compose.yaml",
+		"logs",
+		serviceName,
+		"--no-color",
+	)
+	logs.Env = env
+
+	output, err := logs.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to get logs for service %s: %v", serviceName, err)
+	}
+
+	return string(output), nil
 }

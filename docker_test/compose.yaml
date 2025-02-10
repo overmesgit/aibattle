@@ -1,5 +1,3 @@
-version: "3"
-
 networks:
   internal_net:
     internal: true
@@ -11,13 +9,14 @@ services:
     image: ${TEAM_ONE}
     networks:
       - internal_net
+
   team_two:
     image: ${TEAM_TWO}
     networks:
       - internal_net
 
   proxy:
-    image: nginx
+    image: nginx:alpine
     networks:
       - internal_net
       - public_net
