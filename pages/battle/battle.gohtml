@@ -167,7 +167,7 @@
 
       const Controls = ({currentTurn, gameTurns, setCurrentTurn}) => html`
           <div class="bg-white rounded-lg shadow p-4 mb-4">
-              <h2 class="text-lg font-bold mb-2">My {{.MyTeam}}</h2>
+              <h2 class="text-lg font-bold mb-2 {{if eq .MyTeam "teamA"}}text-blue-500{{else}}text-red-500{{end}}">My {{.MyTeam}}</h2>
               <h2 class="text-lg font-bold mb-2">Turn ${currentTurn} </h2>
               <input
                       type="range"

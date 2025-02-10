@@ -2,6 +2,7 @@
 
 * kill all docker images after and before running
 * cache go templates with env variable flag
+* add python3, js
 
 ## Ideas
 
@@ -13,7 +14,7 @@
 * match making depending on the score
 * battles frequency depends on the number of users
 * disable prompt update if it is in processing
-* add python3, js
+
 * add another apis (Gemini)
 * update leader board in realtime
 * update prompt status in real time
