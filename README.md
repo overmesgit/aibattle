@@ -1,9 +1,13 @@
 ## TODO
 
 * add python3, js
+  * add prompt type in db and page
+  * make image for py3
+  * show icon for type
 
 ## Ideas
 
+* make internal page to check the status of the battle
 * cache go templates with env variable flag
 * mobile friendly
 * run at least one round to test a program

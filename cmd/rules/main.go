@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	fmt.Println(rules.GetGameDescription())
+	fmt.Println(rules.GetGameDescription(""))
 
 }

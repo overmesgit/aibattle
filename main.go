@@ -6,6 +6,7 @@ import (
 	"aibattle/pages"
 	"aibattle/pages/auth"
 	"aibattle/pages/battle"
+	"aibattle/pages/builder"
 	"aibattle/pages/index"
 	"aibattle/pages/leader"
 	"aibattle/pages/middleware"
@@ -85,20 +86,21 @@ func main() {
 func ProcessPrompts(app *pocketbase.PocketBase) {
 	ScheduleRemainingPrompts(app)
 	for {
-		firstPrompt := <-prompt.PromptsToProcess
-		newProg, promptErr := prompt.GetProgram(
-			context.Background(), firstPrompt.Id, firstPrompt.GetString("text"),
+		nextPrompt := <-prompt.PromptsToProcess
+		newProg, promptErr := builder.GetProgram(
+			context.Background(), nextPrompt.Id, nextPrompt.GetString("text"),
+			nextPrompt.GetString("language"),
 		)
 		if promptErr != nil {
 			log.Printf("Error getting prompt: %v", promptErr)
-			firstPrompt.Set("status", "error")
-			firstPrompt.Set("error", promptErr.Error())
+			nextPrompt.Set("status", "error")
+			nextPrompt.Set("error", promptErr.Error())
 		} else {
-			firstPrompt.Set("status", "done")
-			firstPrompt.Set("error", "")
+			nextPrompt.Set("status", "done")
+			nextPrompt.Set("error", "")
 		}
-		firstPrompt.Set("output", newProg)
-		saveErr := app.Save(firstPrompt)
+		nextPrompt.Set("output", newProg)
+		saveErr := app.Save(nextPrompt)
 		if saveErr != nil {
 			log.Printf("Error saving prompt: %v", saveErr)
 		}

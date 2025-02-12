@@ -1,29 +1,24 @@
 package rules
 
 import (
+	"aibattle/game"
 	"aibattle/game/world"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"text/template"
 )
 
-type TurnAction struct {
-	UnitAction [2]UnitAction `json:"unit_action"`
-}
+const (
+	LangPy = "py"
+	LangGo = "go"
+)
 
-type UnitAction struct {
-	Action world.Action    `json:"action"`
-	Target *world.Position `json:"target"`
-}
+var AvailableLanguages = []string{LangPy, LangGo}
 
-type NextTurnInput struct {
-	State  world.GameState `json:"state"`
-	UnitID int             `json:"unit_id"`
-}
-
-func GetGameDescription() (string, error) {
+func GetGameDescription(language string) (string, error) {
 	state := world.GetInitialGameState()
 	unitsList := []*world.Unit{
 		world.NewWarrior(world.TeamA, world.Position{X: 20, Y: 20}),
@@ -42,28 +37,25 @@ func GetGameDescription() (string, error) {
 			),
 		)
 	}
-	possibleActions := fmt.Sprint(
-		world.HOLD, ", ",
-		world.MOVE, ", ",
-		world.ATTACK1, ", ",
-		world.ATTACK2, ", ",
-		world.SKILL1, ", ",
-		world.SKILL2, ", ",
-	)
 
-	jsonState, err := json.MarshalIndent(NextTurnInput{state, 1}, "", "  ")
+	jsonState, err := json.MarshalIndent(game.NextTurnInput{state, 1}, "", "  ")
 	if err != nil {
 		return "", err
 	}
 
 	nextActionExample, err := json.Marshal(
-		TurnAction{[2]UnitAction{
+		game.TurnAction{[2]*game.UnitAction{
 			{Action: world.MOVE, Target: &world.Position{X: 20, Y: 20}},
 			{Action: world.ATTACK1, Target: &world.Position{X: 21, Y: 20}},
-		}},
+		}, 10},
 	)
 	if err != nil {
 		return "", err
+	}
+
+	languageTemplate, langErr := getLanguageTemplate(language)
+	if langErr != nil {
+		return "", langErr
 	}
 
 	tmpl, err := template.ParseFiles("game/rules/rules.tmpl")
@@ -77,14 +69,14 @@ func GetGameDescription() (string, error) {
 		UnitsDescription  string
 		JSONState         string
 		NextActionExample string
-		PossibleActions   string
+		LanguageTemplate  string
 	}{
 		NumUnitsPerTeam:   len(state.Units) / 2,
 		GridSize:          fmt.Sprintf("%dx%d", state.Height, state.Width),
 		UnitsDescription:  unitsDescription.String(),
 		JSONState:         string(jsonState),
 		NextActionExample: string(nextActionExample),
-		PossibleActions:   possibleActions,
+		LanguageTemplate:  languageTemplate,
 	}
 
 	var buf bytes.Buffer
@@ -93,6 +85,28 @@ func GetGameDescription() (string, error) {
 	}
 
 	return buf.String(), nil
+}
+
+func getLanguageTemplate(language string) (string, error) {
+	languageTemplate := ""
+	switch language {
+	case LangPy:
+		languageTemplate = "game/rules/templates/py.py"
+	case LangGo:
+		languageTemplate = "game/rules/templates/go_test.go"
+	default:
+		return "", errors.New("unknown language")
+	}
+
+	langTemplate, langErr := template.ParseFiles(languageTemplate)
+	if langErr != nil {
+		return "", langErr
+	}
+	var langBuf bytes.Buffer
+	if err := langTemplate.Execute(&langBuf, nil); err != nil {
+		return "", err
+	}
+	return langBuf.String(), nil
 }
 
 func printActions(actions world.ActionMap) string {

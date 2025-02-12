@@ -5,6 +5,7 @@ import (
 	"aibattle/game/rules"
 	"aibattle/pages"
 	"fmt"
+	"github.com/samber/lo"
 	"html/template"
 	"net/http"
 	"time"
@@ -17,14 +18,15 @@ import (
 type Data struct {
 	User *core.Record
 
-	Text   string
-	Errors []string
+	Text     string
+	Language string
+	Errors   []string
 
-	ID            string
-	Output        string
-	Status        string
-	DefaultPrompt string
-	Prompts       []*core.Record
+	ID             string
+	Output         string
+	Status         string
+	DefaultPrompts map[string]string
+	Prompts        []*core.Record
 }
 
 func GetPrompts(app *pocketbase.PocketBase, userId string) ([]*core.Record, error) {
@@ -61,8 +63,9 @@ func CreatePrompt(
 		if dataErr != nil {
 			return dataErr
 		}
+		data.Language = e.Request.FormValue("language")
 		data.Text = e.Request.FormValue("text")
-		newPrompt, validationErr, promptErr := CreateUpdatePrompt(data.Text, e.Auth.Id, app, nil)
+		newPrompt, validationErr, promptErr := CreateUpdatePrompt(data, e.Auth.Id, app, nil)
 		if promptErr != nil {
 			return promptErr
 		}
@@ -99,7 +102,7 @@ func UpdatePrompt(
 		data.Text = e.Request.FormValue("text")
 
 		updatedPrompt, validationErr, promptErr := CreateUpdatePrompt(
-			data.Text, e.Auth.Id, app, prompt,
+			data, e.Auth.Id, app, prompt,
 		)
 		if promptErr != nil {
 			return promptErr
@@ -155,6 +158,18 @@ func ActivatePrompt(
 	}
 }
 
+func getRules() (map[string]string, error) {
+	res := make(map[string]string)
+	for _, key := range []string{rules.LangPy, rules.LangGo} {
+		gameRules, err := rules.GetGameDescription(key)
+		if err != nil {
+			return nil, err
+		}
+		res[key] = gameRules
+	}
+	return res, nil
+}
+
 func defaultData(
 	user *core.Record, app *pocketbase.PocketBase, id string,
 ) (*core.Record, Data, error) {
@@ -163,15 +178,15 @@ func defaultData(
 		return nil, Data{}, err
 	}
 
-	gameRules, err := rules.GetGameDescription()
+	gameRules, err := getRules()
 	if err != nil {
 		return nil, Data{}, err
 	}
 	data := Data{
-		User:          user,
-		Prompts:       prompts,
-		DefaultPrompt: gameRules,
-		Status:        "unknown",
+		User:           user,
+		Prompts:        prompts,
+		DefaultPrompts: gameRules,
+		Status:         "unknown",
 	}
 
 	if id != "" {
@@ -200,18 +215,22 @@ var PromptsToProcess = make(chan *core.Record, 20)
 var UserRateLimiter = make(map[string]time.Time)
 
 func CreateUpdatePrompt(
-	text string, userID string, app *pocketbase.PocketBase, prompt *core.Record,
+	data Data, userID string, app *pocketbase.PocketBase, prompt *core.Record,
 ) (*core.Record, []string, error) {
-	// TODO: check prompt limits
 	var errors []string
-	if len(text) > 300 {
+	if len(data.Text) > 300 {
 		errors = append(errors, "Text too long")
-		return nil, errors, nil
+	}
+	if lo.IndexOf(rules.AvailableLanguages, data.Language) == -1 {
+		errors = append(errors, "Language not available")
 	}
 	if time.Now().Sub(UserRateLimiter[userID]).Seconds() < 60 {
 		errors = append(errors, "We allow only one update per minute per user, please try later.")
+	}
+	if len(errors) > 0 {
 		return nil, errors, nil
 	}
+
 	var newPrompt *core.Record
 	if prompt == nil {
 		collection, err := app.FindCollectionByNameOrId("prompt")
@@ -222,8 +241,9 @@ func CreateUpdatePrompt(
 	} else {
 		newPrompt = prompt
 	}
-	newPrompt.Set("text", text)
+	newPrompt.Set("text", data.Text)
 	newPrompt.Set("user", userID)
+	newPrompt.Set("language", data.Language)
 	newPrompt.Set("status", "")
 	newPrompt.Set("output", "")
 	saveErr := app.Save(newPrompt)

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/samber/lo"
@@ -123,6 +124,7 @@ func saveBattle(app *pocketbase.PocketBase, result game.Result) (*core.Record, e
 	if batErr := app.Save(battle); batErr != nil {
 		return nil, fmt.Errorf("error saving battle: %w", batErr)
 	}
+	log.Printf("Battle result: %s", battle.Id)
 	return battle, nil
 }
 

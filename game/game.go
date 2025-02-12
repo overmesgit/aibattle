@@ -45,7 +45,7 @@ func updateGameState(gameState *world.GameState, unit *world.Unit, action *UnitA
 
 type TurnAction struct {
 	UnitAction [2]*UnitAction `json:"unit_action"`
-	UnitID     int            `json:"unit_id"`
+	UnitID     int
 }
 
 type UnitAction struct {
@@ -55,8 +55,8 @@ type UnitAction struct {
 }
 
 type NextTurnInput struct {
-	State  world.GameState `json:"state"`
-	UnitID int             `json:"unit_id"`
+	State         world.GameState `json:"state"`
+	CurrentUnitID int             `json:"current_unit_id"`
 }
 
 func GetTurnAction(team int, state []byte) ([]byte, error) {
@@ -76,6 +76,10 @@ func GetTurnAction(team int, state []byte) ([]byte, error) {
 		}
 	}(resp.Body)
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error status code from the agent %s", resp.Status)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -87,8 +91,8 @@ func GetTurnAction(team int, state []byte) ([]byte, error) {
 func GetNextAction(state world.GameState, unit *world.Unit) (TurnAction, error) {
 	jsonState, err := json.Marshal(
 		NextTurnInput{
-			State:  state,
-			UnitID: unit.ID,
+			State:         state,
+			CurrentUnitID: unit.ID,
 		},
 	)
 	if err != nil {
@@ -96,10 +100,10 @@ func GetNextAction(state world.GameState, unit *world.Unit) (TurnAction, error) 
 		return TurnAction{}, err
 	}
 
-	nextMoveJson, err := GetTurnAction(unit.Team, jsonState)
-	if err != nil {
-		log.Println("error getting next action", err)
-		return TurnAction{}, err
+	nextMoveJson, turnErr := GetTurnAction(unit.Team, jsonState)
+	if turnErr != nil {
+		log.Println("error getting next action", turnErr)
+		return TurnAction{}, turnErr
 	}
 
 	nextMove := TurnAction{
@@ -109,6 +113,9 @@ func GetNextAction(state world.GameState, unit *world.Unit) (TurnAction, error) 
 	if err != nil {
 		log.Println("error unmarshal next move", err)
 		return TurnAction{}, err
+	}
+	if nextMove.UnitAction[0] == nil && nextMove.UnitAction[1] == nil {
+		return TurnAction{}, errors.New("no action found")
 	}
 	return nextMove, nil
 }
@@ -125,11 +132,15 @@ func RunGame() (Result, error) {
 	gameState := world.GetInitialGameState()
 	maxTurns := 50
 
-	var teamA []*world.Unit
-	var teamB []*world.Unit
 	calcHP := func(item *world.Unit) int {
 		return item.HP
 	}
+	teamA := lo.Filter(
+		gameState.Units, func(item *world.Unit, _ int) bool { return item.Team == world.TeamA },
+	)
+	teamB := lo.Filter(
+		gameState.Units, func(item *world.Unit, _ int) bool { return item.Team == world.TeamB },
+	)
 	result := Result{
 		Winner:    world.Draw,
 		InitUnits: gameState.Units,
@@ -173,26 +184,21 @@ func RunGame() (Result, error) {
 				continue
 			}
 
-			err := checkActionsAreUnique(nextAction)
-			if err != nil {
-				log.Println(err)
-				nextAction.UnitAction[1].Error = err.Error()
-				continue
-			}
+			lastAction := world.Action("")
 			for _, act := range nextAction.UnitAction {
 				if act == nil || act.Action == "" {
 					continue
 				}
-				//log.Printf(
-				//	"Team %d Unit %s %v performs %v %v\n", unit.Team, unit.Type, unit.Position,
-				//	act.Action,
-				//	act.Target,
-				//)
+				if lastAction != "" && actionsAreOk(lastAction, act.Action) {
+					act.Error = "same type of actions as first action"
+					continue
+				}
 				err := updateGameState(&gameState, unit, act)
 				if err != nil {
 					//log.Println(err)
 					act.Error = err.Error()
 				}
+				lastAction = act.Action
 			}
 
 		}
@@ -205,6 +211,15 @@ func RunGame() (Result, error) {
 		result.Turns = append(result.Turns, turnLog)
 	}
 	return result, nil
+}
+
+var moveActions = []world.Action{world.MOVE, world.HOLD}
+
+func actionsAreOk(prevActin world.Action, nextAction world.Action) bool {
+	if lo.IndexOf(moveActions, prevActin) >= 0 && lo.IndexOf(moveActions, nextAction) >= 0 {
+		return true
+	}
+	return false
 }
 
 func checkWinningTeam(
@@ -221,21 +236,6 @@ func checkWinningTeam(
 		return world.TeamA, true
 	}
 	return -1, false
-}
-
-func checkActionsAreUnique(nextAction TurnAction) error {
-	actions := lo.Map(
-		nextAction.UnitAction[:], func(item *UnitAction, index int) world.Action {
-			if item == nil {
-				return ""
-			}
-			return item.Action
-		},
-	)
-	if len(actions) > 1 && actions[0] == actions[1] {
-		return errors.New("unit can perform only one same action per turn")
-	}
-	return nil
 }
 
 type TurnLog struct {

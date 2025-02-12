@@ -27,19 +27,19 @@
           <div class="mb-4">
             <a href="/prompt" class="btn btn-neutral w-full">Create New Prompt</a>
           </div>
-          {{$hasActive := false}}
-          {{range .Prompts}}
-            {{if .GetBool "active"}}
-              {{$hasActive = true}}
+            {{$hasActive := false}}
+            {{range .Prompts}}
+                {{if .GetBool "active"}}
+                    {{$hasActive = true}}
+                {{end}}
             {{end}}
-          {{end}}
-          {{if not $hasActive}}
-            <div class="alert alert-warning shadow-lg mb-4">
-              <div>
-                <span>You have no active prompt. Please activate one to participate in battles.</span>
+            {{if not $hasActive}}
+              <div class="alert alert-warning shadow-lg mb-4">
+                <div>
+                  <span>You have no active prompt. Please activate one to participate in battles.</span>
+                </div>
               </div>
-            </div>
-          {{end}}
+            {{end}}
           <ul class="menu">
               {{range .Prompts}}
                 <li>
@@ -77,16 +77,37 @@
           <h1 class="text-xl">Prompt</h1>
           <div class="form-control">
             <label class="label">
-              <span class="label-text">Input Text</span>
+              <span class="label-text">Programming Language</span>
             </label>
+            <select name="language" class="select select-bordered w-full max-w-xs">
+              <option value="go">Go</option>
+              <option value="py">Python3</option>
+            </select>
             <div tabindex="0"
                  class="my-2 collapse collapse-arrow border-base-300 bg-base-200 border">
               <input type="checkbox"/>
               <div class="collapse-title text-xl font-medium">Default prompt</div>
               <div class="collapse-content">
-                <p style="white-space: pre; width: 800px">{{.DefaultPrompt}}</p>
+                <p id="default-prompt"
+                   style="white-space: pre; width: 800px">{{.DefaultPrompts.go}}</p>
               </div>
             </div>
+            <script>
+                let defaultPrompt = document.getElementById("default-prompt")
+                let langElement = document.getElementsByName('language');
+                langElement[0].onchange = function (e) {
+                    if (e.target.value === "go") {
+                        defaultPrompt.textContent = "{{.DefaultPrompts.go}}"
+                    } else {
+                        defaultPrompt.textContent = "{{.DefaultPrompts.py}}"
+                    }
+                }
+            </script>
+
+            <label class="label">
+              <span class="label-text">Input Text</span>
+            </label>
+
             <textarea id="prompt-input" name="text"
                       class="textarea textarea-bordered h-24">{{.Text}}</textarea>
             <div class="flex justify-end m-1">
