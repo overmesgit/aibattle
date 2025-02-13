@@ -100,6 +100,7 @@ func UpdatePrompt(
 		}
 
 		data.Text = e.Request.FormValue("text")
+		data.Language = e.Request.FormValue("language")
 
 		updatedPrompt, validationErr, promptErr := CreateUpdatePrompt(
 			data, e.Auth.Id, app, prompt,

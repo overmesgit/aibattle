@@ -214,7 +214,6 @@
                                           u => u.position.x === act.target?.x && u.position.y === act.target?.y
                                   );
                                   const unit = currentState.units.find((u) => u.id === action.unit_id);
-                                  console.log(unit, action.unit_id)
                                   const backGround = unit?.team === 1 ? "bg-blue-300" : "bg-red-300";
                                   return html`
                                       <div key=${actIndex}

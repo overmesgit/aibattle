@@ -880,6 +880,20 @@ func init() {
 					},
 					{
 						"hidden": false,
+						"id": "select3571151285",
+						"maxSelect": 1,
+						"name": "language",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "select",
+						"values": [
+							"go",
+							"py"
+						]
+					},
+					{
+						"hidden": false,
 						"id": "autodate2990389176",
 						"name": "created",
 						"onCreate": true,
@@ -935,7 +949,7 @@ func init() {
 						"autogeneratePattern": "",
 						"hidden": false,
 						"id": "text3437106334",
-						"max": 0,
+						"max": 50000,
 						"min": 0,
 						"name": "output",
 						"pattern": "",

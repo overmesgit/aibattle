@@ -39,10 +39,10 @@ type Skill struct {
 type ActionMap struct {
 	Move    *Move   `json:"move,omitempty"`
 	Hold    *Move   `json:"hold,omitempty"`
-	Attack1 *Attack `json:"attack_1,omitempty"`
-	Skill1  *Skill  `json:"skill_1,omitempty"`
-	Skill2  *Skill  `json:"skill_2,omitempty"`
-	Skill3  *Skill  `json:"skill_3,omitempty"`
+	Attack1 *Attack `json:"attack1,omitempty"`
+	Skill1  *Skill  `json:"skill1,omitempty"`
+	Skill2  *Skill  `json:"skill2,omitempty"`
+	Skill3  *Skill  `json:"skill3,omitempty"`
 }
 
 type Unit struct {

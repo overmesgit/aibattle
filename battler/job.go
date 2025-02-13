@@ -32,6 +32,7 @@ func RunBattleTask(app *pocketbase.PocketBase) {
 		if err != nil {
 			log.Println(err)
 			time.Sleep(minSleepDuration)
+			continue
 		}
 
 		// Calculate sleep duration to achieve ~1 battle per user per 5 minutes
