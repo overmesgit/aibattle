@@ -1,6 +1,40 @@
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
+class Position:
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+
+    def distance_to(self, other) -> int:
+        return abs(self.x - other.x) + abs(self.y - other.y)
+
+    def to_dict(self):
+        return {"x": self.x, "y": self.y}
+
+class Action:
+    def __init__(self, action: str, target: Position, error: str = ""):
+        self.action = action
+        self.target = target
+        self.error = error
+
+    def to_dict(self):
+        return {
+            "action": self.action,
+            "target": self.target.to_dict(),
+            "error": self.error
+        }
+
+class ActionResponse:
+    def __init__(self, actions: list):
+        self.unit_action = actions
+
+    def to_dict(self):
+        return {
+            "unit_action": [action.to_dict() for action in self.unit_action]
+        }
+
+
 # implementation of get_turn_actions(input_dict)
 <generated>
 
