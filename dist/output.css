@@ -2549,21 +2549,6 @@ details.collapse summary::-webkit-details-marker {
   border-top-width: 4px;
 }
 
-.select-lg {
-  height: 4rem;
-  min-height: 4rem;
-  padding-left: 1.5rem;
-  padding-right: 2rem;
-  font-size: 1.125rem;
-  line-height: 1.75rem;
-  line-height: 2;
-}
-
-[dir="rtl"] .select-lg {
-  padding-left: 2rem;
-  padding-right: 1.5rem;
-}
-
 .card-compact .card-body {
   padding: 1rem;
   font-size: 0.875rem;
@@ -2681,14 +2666,6 @@ details.collapse summary::-webkit-details-marker {
   margin-top: 1.5rem;
 }
 
-.mr-2 {
-  margin-right: 0.5rem;
-}
-
-.inline {
-  display: inline;
-}
-
 .flex {
   display: flex;
 }
@@ -2755,10 +2732,6 @@ details.collapse summary::-webkit-details-marker {
 
 .w-full {
   width: 100%;
-}
-
-.w-48 {
-  width: 12rem;
 }
 
 .max-w-4xl {

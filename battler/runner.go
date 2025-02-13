@@ -16,7 +16,12 @@ func GetBattleResult(
 	ctx context.Context, prompt1 *core.Record, prompt2 *core.Record,
 ) (game.Result, error) {
 	fmt.Printf(
-		"Run battle team a %s, team b %s", prompt1.GetString("user"), prompt2.GetString("user"),
+		"Run battle team a user: %s prompt %s language %s\n",
+		prompt1.GetString("user"), prompt1.Id, prompt1.GetString("language"),
+	)
+	fmt.Printf(
+		"Run battle team b user: %s prompt %s language %s\n",
+		prompt2.GetString("user"), prompt2.Id, prompt2.GetString("language"),
 	)
 	// Set up environment variables for docker-compose
 	env := []string{

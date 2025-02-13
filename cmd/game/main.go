@@ -2,8 +2,11 @@ package main
 
 import (
 	"aibattle/game"
+	"fmt"
 )
 
 func main() {
-	game.RunGame()
+	res, err := game.RunGame()
+	fmt.Println(err)
+	fmt.Println(res)
 }

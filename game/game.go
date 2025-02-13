@@ -45,7 +45,7 @@ func updateGameState(gameState *world.GameState, unit *world.Unit, action *UnitA
 
 type TurnAction struct {
 	UnitAction [2]*UnitAction `json:"unit_action"`
-	UnitID     int
+	UnitID     int            `json:"unit_id"`
 }
 
 type UnitAction struct {
@@ -112,10 +112,10 @@ func GetNextAction(state world.GameState, unit *world.Unit) (TurnAction, error) 
 	err = json.Unmarshal(nextMoveJson, &nextMove)
 	if err != nil {
 		log.Println("error unmarshal next move", err)
-		return TurnAction{}, err
+		return nextMove, err
 	}
 	if nextMove.UnitAction[0] == nil && nextMove.UnitAction[1] == nil {
-		return TurnAction{}, errors.New("no action found")
+		return nextMove, errors.New("no action found")
 	}
 	return nextMove, nil
 }
@@ -174,15 +174,16 @@ func RunGame() (Result, error) {
 			}
 
 			nextAction, actionErr := GetNextAction(gameState, unit)
-			turnActions = append(turnActions, nextAction)
 			if actionErr != nil {
 				nextAction.UnitAction = [2]*UnitAction{
-					{Error: fmt.Sprintf(
-						"error reading response from the container: %s", actionErr.Error(),
-					)},
+					{
+						Error: fmt.Sprintf(
+							"error reading response from the container: %s", actionErr.Error(),
+						)},
 				}
 				continue
 			}
+			turnActions = append(turnActions, nextAction)
 
 			lastAction := world.Action("")
 			for _, act := range nextAction.UnitAction {
