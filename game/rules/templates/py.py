@@ -65,7 +65,11 @@ class GameHandler(BaseHTTPRequestHandler):
 def main():
     print("starting game server")
     server = HTTPServer(('', 8080), GameHandler)
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("shutting down server")
+        server.server_close()
 
 if __name__ == "__main__":
     main()

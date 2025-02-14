@@ -4,11 +4,12 @@ import (
 	"aibattle/game"
 	"context"
 	"fmt"
-	"github.com/samber/lo"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/samber/lo"
 
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -55,11 +56,10 @@ func GetBattleResult(
 	if err != nil {
 		return game.Result{}, err
 	}
-
 	cleanup := exec.CommandContext(
 		ctx, "docker", "compose",
 		"-f", "docker_test/compose.yaml",
-		"down",
+		"down", "--timeout", "1",
 	)
 	cleanup.Env = env
 	cleanup.Stderr = os.Stderr
