@@ -2,9 +2,10 @@ package leader
 
 import (
 	"aibattle/pages"
+	"html/template"
+
 	"github.com/pocketbase/dbx"
 	"github.com/samber/lo"
-	"html/template"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
@@ -19,6 +20,7 @@ type ScoreEntry struct {
 	Username string
 	UserID   string
 	Score    float64
+	Language string
 }
 
 func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.RequestEvent) error {
@@ -33,6 +35,21 @@ func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Req
 		if err != nil {
 			return err
 		}
+
+		// Get active prompts for users
+		var activePrompts []*core.Record
+		err = app.RecordQuery("prompt").
+			AndWhere(dbx.HashExp{"active": true}).
+			All(&activePrompts)
+
+		if err != nil {
+			return err
+		}
+
+		// Map active prompts by user ID
+		activePromptsMap := lo.Associate(activePrompts, func(p *core.Record) (string, *core.Record) {
+			return p.GetString("user"), p
+		})
 
 		// Expand opponent relations to get names
 		expErr := app.ExpandRecords(records, []string{"user"}, nil)
@@ -50,6 +67,7 @@ func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Req
 						Username: user.GetString("name"),
 						UserID:   user.Id,
 						Score:    record.GetFloat("score"),
+						Language: activePromptsMap[user.Id].GetString("language"),
 					},
 				)
 			}

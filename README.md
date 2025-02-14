@@ -7,6 +7,8 @@
 
 ## Ideas
 
+* py instance takes long time to stop
+* check py container after docker build
 * make internal page to check the status of the battle
 * cache go templates with env variable flag
 * mobile friendly

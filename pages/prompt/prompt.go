@@ -202,6 +202,7 @@ func defaultData(
 		data.Text = prompt.GetString("text")
 		data.Output = prompt.GetString("output")
 		data.Status = prompt.GetString("status")
+		data.Language = prompt.GetString("language")
 		promptError := prompt.GetString("error")
 		if promptError != "" {
 			data.Errors = []string{promptError}

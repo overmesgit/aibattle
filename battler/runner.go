@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -23,6 +24,10 @@ func GetBattleResult(
 		"Run battle team b user: %s prompt %s language %s\n",
 		prompt2.GetString("user"), prompt2.Id, prompt2.GetString("language"),
 	)
+
+	// Get all container IDs
+	//killContainers(ctx)
+
 	// Set up environment variables for docker-compose
 	env := []string{
 		"TEAM_ONE=ai" + prompt1.Id,
@@ -65,6 +70,28 @@ func GetBattleResult(
 	}
 	// For now just return placeholder result
 	return result, nil
+}
+
+func killContainers(ctx context.Context) {
+	listCmd := exec.CommandContext(ctx, "docker", "ps", "-q")
+	containerOutput, listErr := listCmd.Output()
+	if listErr != nil {
+		log.Printf("Warning: listing containers failed: %v", listErr)
+	}
+	fmt.Println(string(containerOutput))
+	containerIDs := strings.Split(string(containerOutput), "\n")
+
+	for _, containerID := range containerIDs {
+		// Kill all running containers
+		killCmd := exec.CommandContext(
+			ctx, "docker", "kill", containerID,
+		)
+		killCmd.Stderr = os.Stderr
+		killCmd.Stdout = os.Stdout
+		if err := killCmd.Run(); err != nil {
+			log.Printf("Warning: kill containers failed: %v", err)
+		}
+	}
 }
 
 func setLogs(ctx context.Context, result game.Result, env []string) game.Result {

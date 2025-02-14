@@ -3,169 +3,169 @@
 {{define "head"}}{{end}}
 
 {{define "content"}}
-  <style>
-      .red {
-          color: #f87171;
-      }
+<style>
+    .red {
+        color: #f87171;
+    }
 
-      textarea:disabled {
-          opacity: 1 !important;
-          background-color: inherit !important;
-          color: inherit !important;
-      }
-  </style>
-  <script>
-      if (window.history.replaceState) {
-          window.history.replaceState(null, null, window.location.href);
-      }
-  </script>
-  <div class="flex p-4 pl-8 pr-8">
-    <div class="w-1/4 pr-4">
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h2 class="card-title">Prompts</h2>
-          <div class="mb-4">
-            <a href="/prompt" class="btn btn-neutral w-full">Create New Prompt</a>
-          </div>
-            {{$hasActive := false}}
-            {{range .Prompts}}
-                {{if .GetBool "active"}}
-                    {{$hasActive = true}}
-                {{end}}
-            {{end}}
-            {{if not $hasActive}}
-              <div class="alert alert-warning shadow-lg mb-4">
-                <div>
-                  <span>You have no active prompt. Please activate one to participate in battles.</span>
-                </div>
-              </div>
-            {{end}}
-          <ul class="menu">
-              {{range .Prompts}}
-                <li>
-                  <a href="/prompt/{{.Id}}"
-                     class="{{if eq .Id $.ID}}active{{end}}">
-                      {{.GetDateTime "created"}}
-                      {{if .GetBool "active"}}
-                        <span class="badge badge-primary">Active</span>
-                      {{end}}
-                  </a>
-                </li>
-              {{end}}
-          </ul>
+    textarea:disabled {
+        opacity: 1 !important;
+        background-color: inherit !important;
+        color: inherit !important;
+    }
+</style>
+<script>
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
+<div class="flex p-4 pl-8 pr-8">
+  <div class="w-1/4 pr-4">
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title">Prompts</h2>
+        <div class="mb-4">
+          <a href="/prompt" class="btn btn-neutral w-full">Create New Prompt</a>
         </div>
+          {{$hasActive := false}}
+          {{range .Prompts}}
+              {{if .GetBool "active"}}
+                  {{$hasActive = true}}
+              {{end}}
+          {{end}}
+          {{if not $hasActive}}
+            <div class="alert alert-warning shadow-lg mb-4">
+              <div>
+                <span>You have no active prompt. Please activate one to participate in battles.</span>
+              </div>
+            </div>
+          {{end}}
+        <ul class="menu">
+            {{range .Prompts}}
+              <li>
+                <a href="/prompt/{{.Id}}"
+                   class="{{if eq .Id $.ID}}active{{end}}">
+                    {{.GetDateTime "created"}}
+                    {{if .GetBool "active"}}
+                      <span class="badge badge-primary">Active</span>
+                    {{end}}
+                </a>
+              </li>
+            {{end}}
+        </ul>
       </div>
     </div>
-    <div class="w-3/4">
-      <form method="POST" class="mb-2 card bg-base-100 shadow-xl">
-        <div class="card-body">
-            {{if .Errors}}
-              <div class="alert alert-error shadow-lg">
-                  {{range .Errors}}
-                    <div class="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg"
-                           class="stroke-current flex-shrink-0 h-6 w-6" fill="none"
-                           viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                      </svg>
-                      <span style="white-space: pre-line">{{.}}</span>
-                    </div>
-                  {{end}}
-              </div>
-            {{end}}
-          <h1 class="text-xl">Prompt</h1>
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Programming Language</span>
-            </label>
-            <select name="language" class="select select-bordered w-full max-w-xs">
-              <option value="go">Go</option>
-              <option value="py">Python3</option>
-            </select>
-            <div tabindex="0"
-                 class="my-2 collapse collapse-arrow border-base-300 bg-base-200 border">
-              <input type="checkbox"/>
-              <div class="collapse-title text-xl font-medium">Default prompt</div>
-              <div class="collapse-content">
-                <p id="default-prompt"
-                   style="white-space: pre; width: 800px">{{.DefaultPrompts.go}}</p>
-              </div>
-            </div>
-            <script>
-                let defaultPrompt = document.getElementById("default-prompt")
-                let langElement = document.getElementsByName('language');
-                langElement[0].onchange = function (e) {
-                    if (e.target.value === "go") {
-                        defaultPrompt.textContent = "{{.DefaultPrompts.go}}"
-                    } else {
-                        defaultPrompt.textContent = "{{.DefaultPrompts.py}}"
-                    }
-                }
-            </script>
-
-            <label class="label">
-              <span class="label-text">Input Text</span>
-            </label>
-
-            <textarea id="prompt-input" name="text"
-                      class="textarea textarea-bordered h-24">{{.Text}}</textarea>
-            <div class="flex justify-end m-1">
-              <div id="chars-length">0/300</div>
-            </div>
-            <script>
-                let promptEl = document.getElementById('prompt-input');
-                let counterEl = document.getElementById('chars-length');
-                const oninput = (curLen) => {
-
-                    counterEl.textContent = `${curLen}/300`;
-                    if (curLen > 300) {
-                        counterEl.classList.add('red');
-                    } else if (curLen < 300) {
-                        counterEl.classList.remove('red');
-                    }
-                }
-                promptEl.oninput = (e) => {
-                    oninput(e.currentTarget.value.length);
-                };
-                oninput(promptEl.textContent.length);
-            </script>
-          </div>
-
-          <div class="flex justify-end">
-            <button type="submit" class="btn btn-primary">Send</button>
-          </div>
-        </div>
-      </form>
-        {{if ne .Status "unknown"}}
-          <form action="/prompt/{{.ID}}/activate" method="POST"
-                class="mt-2 card bg-base-100 shadow-xl">
-            <div class="card-body">
-                {{if eq .Status ""}}
-                  <div class="flex justify-center my-4">
-                    <span class="loading loading-spinner loading-lg"></span>
-                    <span class="align-middle">
-                  Please update page to see result. Creating new prompt may take a couple of minutes.
-                </span>
-                  </div>
-                {{else}}
-                  <div class="form-control">
-                    <label class="label">
-                      <span class="label-text">Output</span>
-                    </label>
-                    <textarea class="textarea textarea-bordered h-96"
-                              disabled>{{.Output}}</textarea>
-                  </div>
-                  <div class="flex justify-end">
-                    <button type="submit" class="btn btn-primary"
-                            {{if eq .Status ""}}disabled{{end}}>
-                      Activate
-                    </button>
+  </div>
+  <div class="w-3/4">
+    <form method="POST" class="mb-2 card bg-base-100 shadow-xl">
+      <div class="card-body">
+          {{if .Errors}}
+            <div class="alert alert-error shadow-lg">
+                {{range .Errors}}
+                  <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="stroke-current flex-shrink-0 h-6 w-6" fill="none"
+                         viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span style="white-space: pre-line">{{.}}</span>
                   </div>
                 {{end}}
             </div>
-          </form>
-        {{end}}
-    </div>
+          {{end}}
+        <h1 class="text-xl">Prompt</h1>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Programming Language</span>
+          </label>
+          <select name="language" class="select select-bordered w-full max-w-xs">
+            <option value="go" {{if eq .Language "go" }}selected{{end}}>Go</option>
+            <option value="py" {{if eq .Language "py" }}selected{{end}}>Python3</option>
+          </select>
+          <div tabindex="0"
+               class="my-2 collapse collapse-arrow border-base-300 bg-base-200 border">
+            <input type="checkbox"/>
+            <div class="collapse-title text-xl font-medium">Default prompt</div>
+            <div class="collapse-content">
+              <p id="default-prompt"
+                 style="white-space: pre; width: 800px">{{if eq .Language "go" }}{{.DefaultPrompts.go}}{{else}}{{.DefaultPrompts.py}}{{end}}</p>
+            </div>
+          </div>
+          <script>
+              let defaultPrompt = document.getElementById("default-prompt")
+              let langElement = document.getElementsByName('language');
+              langElement[0].onchange = function (e) {
+                  if (e.target.value === "go") {
+                      defaultPrompt.textContent = "{{.DefaultPrompts.go}}"
+                  } else {
+                      defaultPrompt.textContent = "{{.DefaultPrompts.py}}"
+                  }
+              }
+          </script>
+
+          <label class="label">
+            <span class="label-text">Input Text</span>
+          </label>
+
+          <textarea id="prompt-input" name="text"
+                    class="textarea textarea-bordered h-24">{{.Text}}</textarea>
+          <div class="flex justify-end m-1">
+            <div id="chars-length">0/300</div>
+          </div>
+          <script>
+              let promptEl = document.getElementById('prompt-input');
+              let counterEl = document.getElementById('chars-length');
+              const oninput = (curLen) => {
+
+                  counterEl.textContent = `${curLen}/300`;
+                  if (curLen > 300) {
+                      counterEl.classList.add('red');
+                  } else if (curLen < 300) {
+                      counterEl.classList.remove('red');
+                  }
+              }
+              promptEl.oninput = (e) => {
+                  oninput(e.currentTarget.value.length);
+              };
+              oninput(promptEl.textContent.length);
+          </script>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="submit" class="btn btn-primary">Send</button>
+        </div>
+      </div>
+    </form>
+      {{if ne .Status "unknown"}}
+        <form action="/prompt/{{.ID}}/activate" method="POST"
+              class="mt-2 card bg-base-100 shadow-xl">
+          <div class="card-body">
+              {{if eq .Status ""}}
+                <div class="flex justify-center my-4">
+                  <span class="loading loading-spinner loading-lg"></span>
+                  <span class="align-middle">
+                  Please update page to see result. Creating new prompt may take a couple of minutes.
+                </span>
+                </div>
+              {{else}}
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Output</span>
+                  </label>
+                  <textarea class="textarea textarea-bordered h-96"
+                            disabled>{{.Output}}</textarea>
+                </div>
+                <div class="flex justify-end">
+                  <button type="submit" class="btn btn-primary"
+                          {{if eq .Status ""}}disabled{{end}}>
+                    Activate
+                  </button>
+                </div>
+              {{end}}
+          </div>
+        </form>
+      {{end}}
   </div>
+</div>
 {{end}}
