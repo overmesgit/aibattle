@@ -100,9 +100,10 @@ func GetNextAction(state world.GameState, unit *world.Unit) (TurnAction, error) 
 		return TurnAction{}, err
 	}
 
+	//fmt.Println(string(jsonState))
 	nextMoveJson, turnErr := GetTurnAction(unit.Team, jsonState)
 	if turnErr != nil {
-		log.Println("error getting next action", turnErr)
+		log.Printf("team %d error getting next action %s \n", unit.Team, turnErr.Error())
 		return TurnAction{}, turnErr
 	}
 

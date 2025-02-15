@@ -4,7 +4,7 @@
 
 ## Ideas
 
-* check py container after docker build
+* request time limit for getting next action
 * run at least one round to test a program
 * make internal page to check the status of the battle
 * cache go templates with env variable flag

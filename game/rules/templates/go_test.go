@@ -63,8 +63,8 @@ type ActionResponse struct {
 
 // InputJSON format:
 type NextTurnInput struct {
-	State  GameState `json:"state"`
-	UnitID int       `json:"unit_id"`
+	State         GameState `json:"state"`
+	CurrentUnitID int       `json:"current_unit_id"`
 }
 
 func distance(a, b Position) float64 {
