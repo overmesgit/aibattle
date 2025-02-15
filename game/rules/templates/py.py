@@ -6,7 +6,7 @@ class Position:
         self.x = x
         self.y = y
 
-    def distance_to(self, other) -> int:
+    def distance_to(self, other) -> float:
         return ((other.x-self.x)**2 + (other.y-self.y)**2)**0.5
 
     def to_dict(self):
