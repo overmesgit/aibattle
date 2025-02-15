@@ -15,8 +15,8 @@ type Position struct {
 type Action struct {
 	Move    *MoveAction   `json:"move,omitempty"`
 	Hold    *struct{}     `json:"hold,omitempty"`
-	Attack1 *AttackAction `json:"attack_1,omitempty"`
-	Skill1  *SkillAction  `json:"skill_1,omitempty"`
+	Attack1 *AttackAction `json:"attack1,omitempty"`
+	Skill1  *SkillAction  `json:"skill1,omitempty"`
 }
 
 type MoveAction struct {
