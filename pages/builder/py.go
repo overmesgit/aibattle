@@ -28,6 +28,7 @@ func preparePyDockerFile(tmpDir string) error {
 	dockerfile := `FROM python:3-alpine
 WORKDIR /app
 COPY main.py .
+RUN python3 -m py_compile main.py
 CMD ["python3", "main.py"]`
 
 	dockerfilePath := filepath.Join(tmpDir, "Dockerfile")
