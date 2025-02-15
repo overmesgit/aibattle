@@ -47,9 +47,11 @@ func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Req
 		}
 
 		// Map active prompts by user ID
-		activePromptsMap := lo.Associate(activePrompts, func(p *core.Record) (string, *core.Record) {
-			return p.GetString("user"), p
-		})
+		activePromptsMap := lo.Associate(
+			activePrompts, func(p *core.Record) (string, *core.Record) {
+				return p.GetString("user"), p
+			},
+		)
 
 		// Expand opponent relations to get names
 		expErr := app.ExpandRecords(records, []string{"user"}, nil)
@@ -62,12 +64,20 @@ func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Req
 		for _, record := range records {
 			user := record.ExpandedOne("user")
 			if user != nil {
+				prompt := activePromptsMap[user.Id]
+				lang := lo.TernaryF(
+					prompt != nil, func() string {
+						return prompt.GetString("language")
+					}, func() string {
+						return ""
+					},
+				)
 				scores = append(
 					scores, ScoreEntry{
 						Username: user.GetString("name"),
 						UserID:   user.Id,
 						Score:    record.GetFloat("score"),
-						Language: activePromptsMap[user.Id].GetString("language"),
+						Language: lang,
 					},
 				)
 			}

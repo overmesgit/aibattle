@@ -2,44 +2,44 @@
 {{define "title"}}Login{{end}}
 {{define "head"}}{{end}}
 {{define "content"}}
-<div class="min-h-screen flex items-center justify-center bg-base-200">
+  <div class="min-h-screen flex items-center justify-center bg-base-200">
     <div class="card w-96 bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title justify-center">Login</h2>
+      <div class="card-body">
+        <h2 class="card-title justify-center">Login</h2>
 
-            {{if .Error}}
+          {{if .Error}}
             <div class="alert alert-error">
-                <span>{{.Error}}</span>
+              <span>{{.Error}}</span>
             </div>
-            {{end}}
+          {{end}}
 
 
-            <form method="POST" action="/login">
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">Email</span>
-                    </label>
-                    <input type="email" name="email" placeholder="email@example.com"
-                           class="input input-bordered w-full" required>
-                </div>
+        <form method="POST" action="/login">
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text">Login</span>
+            </label>
+            <input type="text" name="login" placeholder="Login"
+                   class="input input-bordered w-full" required>
+          </div>
 
-                <div class="form-control w-full">
-                    <label class="label">
-                        <span class="label-text">Password</span>
-                    </label>
-                    <input type="password" name="password" placeholder="••••••••"
-                           class="input input-bordered w-full" required>
-                </div>
+          <div class="form-control w-full">
+            <label class="label">
+              <span class="label-text">Password</span>
+            </label>
+            <input type="password" name="password" placeholder="••••••••"
+                   class="input input-bordered w-full" required>
+          </div>
 
-                <div class="card-actions justify-end mt-6">
-                    <button class="btn btn-primary w-full">Login</button>
-                </div>
-            </form>
+          <div class="card-actions justify-end mt-6">
+            <button class="btn btn-primary w-full">Login</button>
+          </div>
+        </form>
 
-            <div class="divider">OR</div>
+        <div class="divider">OR</div>
 
-            <a href="/signup" class="btn btn-outline w-full">Create Account</a>
-        </div>
+        <a href="/signup" class="btn btn-outline w-full">Create Account</a>
+      </div>
     </div>
-</div>
+  </div>
 {{end}}

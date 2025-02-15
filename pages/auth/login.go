@@ -3,6 +3,7 @@ package auth
 import (
 	"aibattle/pages"
 	"errors"
+	"fmt"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
 	"html/template"
@@ -23,7 +24,7 @@ func Login(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Re
 		}
 
 		if e.Request.Method == "POST" {
-			email := e.Request.FormValue("email")
+			email := fmt.Sprintf("%s@email.com", e.Request.FormValue("login"))
 			password := e.Request.FormValue("password")
 			user, valErr := validateUser(app, email, data, password)
 			if valErr != nil {

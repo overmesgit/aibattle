@@ -2,6 +2,7 @@ package auth
 
 import (
 	"aibattle/pages"
+	"fmt"
 	"html/template"
 	"net/http"
 	"time"
@@ -23,7 +24,6 @@ func SignUp(app *pocketbase.PocketBase, templ *template.Template) func(e *core.R
 		}
 
 		if e.Request.Method == "POST" {
-			email := e.Request.FormValue("email")
 			password := e.Request.FormValue("password")
 			username := e.Request.FormValue("name")
 			collection, err := app.FindCollectionByNameOrId("users")
@@ -32,7 +32,7 @@ func SignUp(app *pocketbase.PocketBase, templ *template.Template) func(e *core.R
 			}
 
 			newUser := core.NewRecord(collection)
-			newUser.SetEmail(email)
+			newUser.SetEmail(fmt.Sprintf("%s@email.com", username))
 			newUser.SetPassword(password)
 			newUser.Set("name", username)
 

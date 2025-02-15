@@ -5,6 +5,7 @@
 ## Ideas
 
 * request time limit for getting next action
+* go lang template should use world objects directly
 * run at least one round to test a program
 * make internal page to check the status of the battle
 * cache go templates with env variable flag
