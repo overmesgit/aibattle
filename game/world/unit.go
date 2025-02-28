@@ -46,14 +46,38 @@ type ActionMap struct {
 }
 
 type Unit struct {
-	ID         int       `json:"id"`
-	Team       int       `json:"team"`
-	Type       Type      `json:"type"`
-	Initiative int       `json:"initiative"`
-	HP         int       `json:"hp"`
-	MaxHP      int       `json:"maxHp"`
-	Position   Position  `json:"position"`
-	Actions    ActionMap `json:"actions"`
+	ID         int      `json:"id"`
+	Team       Team     `json:"team"`
+	Type       Type     `json:"type"`
+	Initiative int      `json:"initiative"`
+	HP         int      `json:"hp"`
+	MaxHP      int      `json:"maxHp"`
+	Position   Position `json:"position"`
+}
+
+var UnitActionMap = map[Type]ActionMap{
+	WARRIOR: ActionMap{
+		Move:    &Move{3},
+		Hold:    &Move{},
+		Attack1: &Attack{1, 30},
+	},
+	HEALER: ActionMap{
+		Move:    &Move{2},
+		Hold:    &Move{},
+		Attack1: &Attack{1, 10},
+		Skill1:  &Skill{HEAL, 5, 30, "heal"},
+	},
+	MAGE: ActionMap{
+		Move:    &Move{2},
+		Hold:    &Move{},
+		Attack1: &Attack{1, 10},
+		Skill1:  &Skill{RANGE, 4, 40, "firebolt"},
+	},
+	ROGUE: ActionMap{
+		Move:    &Move{4},
+		Hold:    &Move{},
+		Attack1: &Attack{1, 25},
+	},
 }
 
 func (u *Unit) IsAlive() bool {
@@ -62,7 +86,7 @@ func (u *Unit) IsAlive() bool {
 
 var counter = sync.OnceValue(NewCounter)()
 
-func NewWarrior(team int, position Position) *Unit {
+func NewWarrior(team Team, position Position) *Unit {
 	return &Unit{
 		ID:         counter.Get(),
 		Team:       team,
@@ -71,15 +95,10 @@ func NewWarrior(team int, position Position) *Unit {
 		HP:         200,
 		MaxHP:      200,
 		Position:   position,
-		Actions: ActionMap{
-			Move:    &Move{3},
-			Hold:    &Move{},
-			Attack1: &Attack{1, 30},
-		},
 	}
 }
 
-func NewHealer(team int, position Position) *Unit {
+func NewHealer(team Team, position Position) *Unit {
 	return &Unit{
 		ID:         counter.Get(),
 		Team:       team,
@@ -88,16 +107,10 @@ func NewHealer(team int, position Position) *Unit {
 		HP:         100,
 		MaxHP:      100,
 		Position:   position,
-		Actions: ActionMap{
-			Move:    &Move{2},
-			Hold:    &Move{},
-			Attack1: &Attack{1, 10},
-			Skill1:  &Skill{HEAL, 5, 30, "heal"},
-		},
 	}
 }
 
-func NewMage(team int, position Position) *Unit {
+func NewMage(team Team, position Position) *Unit {
 	return &Unit{
 		ID:         counter.Get(),
 		Team:       team,
@@ -106,16 +119,10 @@ func NewMage(team int, position Position) *Unit {
 		HP:         120,
 		MaxHP:      120,
 		Position:   position,
-		Actions: ActionMap{
-			Move:    &Move{2},
-			Hold:    &Move{},
-			Attack1: &Attack{1, 10},
-			Skill1:  &Skill{RANGE, 4, 40, "firebolt"},
-		},
 	}
 }
 
-func NewRogue(team int, position Position) *Unit {
+func NewRogue(team Team, position Position) *Unit {
 	return &Unit{
 		ID:         counter.Get(),
 		Team:       team,
@@ -124,11 +131,6 @@ func NewRogue(team int, position Position) *Unit {
 		HP:         130,
 		MaxHP:      130,
 		Position:   position,
-		Actions: ActionMap{
-			Move:    &Move{4},
-			Hold:    &Move{},
-			Attack1: &Attack{1, 25},
-		},
 	}
 }
 

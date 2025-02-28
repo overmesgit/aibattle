@@ -2,13 +2,15 @@ package world
 
 import (
 	"errors"
+
+	"github.com/samber/lo"
 )
 
-func (state *GameState) UseSkill(unit *Unit, target *Position) error {
+func (state *GameState) UseSkill(unit Unit, target *Position) error {
 	if target == nil {
 		return errors.New("target is nil")
 	}
-	skill := unit.Actions.Skill1
+	skill := UnitActionMap[unit.Type].Skill1
 	if skill == nil {
 		return errors.New("skill is not available")
 	}
@@ -24,7 +26,7 @@ func (state *GameState) UseSkill(unit *Unit, target *Position) error {
 	}
 
 	if skill.Effect == HEAL {
-		targetUnit.HP += skill.Value
+		targetUnit.HP = lo.Min([]int{targetUnit.HP + skill.Value, targetUnit.MaxHP})
 	}
 	if skill.Effect == RANGE {
 		targetUnit.HP -= skill.Value

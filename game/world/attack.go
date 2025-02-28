@@ -4,16 +4,17 @@ import (
 	"errors"
 )
 
-func (state *GameState) AttackUnit(unit *Unit, target *Position) error {
+func (state *GameState) AttackUnit(unit Unit, target *Position) error {
 	if target == nil {
 		return errors.New("target is nil")
 	}
-	if unit.Actions.Attack1 == nil {
+	attack := UnitActionMap[unit.Type].Attack1
+	if attack == nil {
 		return errors.New("attack is not available")
 	}
 
 	distance := CalculateDistance(unit.Position, *target)
-	if distance > float64(unit.Actions.Attack1.Range) {
+	if distance > float64(attack.Range) {
 		return errors.New("target is out of range")
 	}
 
@@ -22,7 +23,7 @@ func (state *GameState) AttackUnit(unit *Unit, target *Position) error {
 		return err
 	}
 
-	targetUnit.HP -= unit.Actions.Attack1.Damage
+	targetUnit.HP -= attack.Damage
 	return nil
 
 }

@@ -14,7 +14,7 @@ func (state *GameState) MoveUnit(unit *Unit, target *Position) error {
 
 	// Check distance
 	distance := CalculateDistance(unit.Position, *target)
-	if distance > float64(unit.Actions.Move.Distance) {
+	if distance > float64(UnitActionMap[unit.Type].Move.Distance) {
 		return errors.New("target is out of moving range")
 	}
 

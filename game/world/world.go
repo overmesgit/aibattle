@@ -4,6 +4,8 @@ import (
 	"errors"
 	"math"
 	"sort"
+
+	"github.com/samber/lo"
 )
 
 type Position struct {
@@ -18,6 +20,46 @@ type GameState struct {
 	Height int     `json:"height"`
 }
 
+func (state GameState) RemoveDeadUnits() {
+	state.Units = lo.Filter(
+		state.Units, func(unit *Unit, index int) bool {
+			return unit.IsAlive()
+		},
+	)
+}
+
+type Team int
+
+const (
+	Draw Team = iota
+	TeamA
+	TeamB
+)
+
+func GetTeamName(teamID Team) string {
+	switch teamID {
+	case Draw:
+		return "Draw"
+	case TeamA:
+		return "TeamA"
+	case TeamB:
+		return "TeamB"
+	default:
+		return "TeamX"
+	}
+}
+
+type Action string
+
+const (
+	HOLD    Action = "hold"
+	MOVE    Action = "move"
+	ATTACK1 Action = "attack1"
+	ATTACK2 Action = "attack2"
+	SKILL1  Action = "skill1"
+	SKILL2  Action = "skill2"
+)
+
 func GetInitialGameState() GameState {
 	units := make([]*Unit, 0)
 	addUnit := func(newUnit *Unit) {
@@ -30,10 +72,10 @@ func GetInitialGameState() GameState {
 	addUnit(NewMage(TeamA, Position{X: 3, Y: 1}))
 	addUnit(NewRogue(TeamA, Position{X: 4, Y: 1}))
 
-	addUnit(NewWarrior(TeamB, Position{15, 18}))
-	addUnit(NewHealer(TeamB, Position{16, 18}))
-	addUnit(NewMage(TeamB, Position{17, 18}))
-	addUnit(NewRogue(TeamB, Position{X: 18, Y: 18}))
+	addUnit(NewWarrior(TeamB, Position{18, 18}))
+	addUnit(NewHealer(TeamB, Position{17, 18}))
+	addUnit(NewMage(TeamB, Position{16, 18}))
+	addUnit(NewRogue(TeamB, Position{X: 15, Y: 18}))
 
 	sort.Slice(
 		units, func(i, j int) bool {
@@ -73,7 +115,6 @@ func (state *GameState) CopyUnits() []Unit {
 	var res []Unit
 	for _, unit := range state.Units {
 		copyUnit := *unit
-		copyUnit.Actions = ActionMap{}
 		res = append(res, copyUnit)
 	}
 	return res
@@ -84,31 +125,3 @@ func CalculateDistance(pos1, pos2 Position) float64 {
 	dy := float64(pos1.Y - pos2.Y)
 	return math.Sqrt(dx*dx + dy*dy)
 }
-
-const (
-	Draw = iota
-	TeamA
-	TeamB
-)
-
-func GetTeamName(teamID int) string {
-	switch teamID {
-	case TeamA:
-		return "TeamA"
-	case TeamB:
-		return "TeamB"
-	default:
-		return "TeamX"
-	}
-}
-
-type Action string
-
-const (
-	HOLD    Action = "hold"
-	MOVE    Action = "move"
-	ATTACK1 Action = "attack1"
-	ATTACK2 Action = "attack2"
-	SKILL1  Action = "skill1"
-	SKILL2  Action = "skill2"
-)
