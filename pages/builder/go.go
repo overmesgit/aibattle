@@ -55,11 +55,11 @@ func getCompiledProgram(generatedCode string, tmpDir string) error {
 	req.SetBasicAuth(login, password)
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 
 	if err != nil {
 		return fmt.Errorf("failed to compile: %v", err)
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)

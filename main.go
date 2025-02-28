@@ -17,6 +17,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -104,7 +105,40 @@ func ProcessPrompts(app *pocketbase.PocketBase) {
 		if saveErr != nil {
 			log.Printf("Error saving prompt: %v", saveErr)
 		}
+		activateIfFirstPrompt(app, nextPrompt)
 	}
+}
+
+func activateIfFirstPrompt(app *pocketbase.PocketBase, prompt *core.Record) error {
+	if prompt.GetBool("active") {
+		return nil
+	}
+	user := prompt.GetString("user")
+	records, err := app.FindRecordsByFilter(
+		"prompt",
+		"user = {:user} && active = true",
+		"-created",
+		1,
+		0,
+		dbx.Params{
+			"user": user,
+		},
+	)
+	if err != nil {
+		log.Printf("Error checking active prompts: %v", err)
+		return err
+	}
+	if len(records) == 0 {
+		prompt.Set("active", true)
+		saveError := app.Save(prompt)
+		if saveError != nil {
+			log.Printf("Error activating prompt: %v", saveError)
+			return saveError
+		}
+
+		battler.BattleChannel <- prompt.Id
+	}
+	return nil
 }
 
 func ScheduleRemainingPrompts(app *pocketbase.PocketBase) {

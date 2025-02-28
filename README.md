@@ -1,15 +1,20 @@
 ## TODO
 
-* add python3, js
+* use only js with goja
+* new game view
+* activate first prompt immediately
+* keep all turn in one array
+* implement auto play button
+* deploy only gcp run
 
 ## Ideas
 
+* mobile friendly
 * request time limit for getting next action
 * go lang template should use world objects directly
 * run at least one round to test a program
 * make internal page to check the status of the battle
 * cache go templates with env variable flag
-* mobile friendly
 * better to catch errors in the container and return error.
 * battle time to local time
 * replace local image repo with gcp

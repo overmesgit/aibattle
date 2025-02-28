@@ -5,10 +5,11 @@ import (
 	"aibattle/game/rules"
 	"aibattle/pages"
 	"fmt"
-	"github.com/samber/lo"
 	"html/template"
 	"net/http"
 	"time"
+
+	"github.com/samber/lo"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
@@ -220,6 +221,9 @@ func CreateUpdatePrompt(
 	data Data, userID string, app *pocketbase.PocketBase, prompt *core.Record,
 ) (*core.Record, []string, error) {
 	var errors []string
+	if len(data.Text) == 0 {
+		errors = append(errors, "Text is empty")
+	}
 	if len(data.Text) > 300 {
 		errors = append(errors, "Text too long")
 	}
