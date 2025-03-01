@@ -6,7 +6,7 @@ import (
 	"github.com/samber/lo"
 )
 
-func (gameState *GameState) UseSkill(unit Unit, target *Position) error {
+func (gameState *GameState) UseSkill(unit *Unit, target *Position) error {
 	if target == nil {
 		return errors.New("target is nil")
 	}

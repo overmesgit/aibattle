@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-func (gameState *GameState) AttackUnit(unit Unit, target *Position) error {
+func (gameState *GameState) AttackUnit(unit *Unit, target *Position) error {
 	if target == nil {
 		return errors.New("target is nil")
 	}

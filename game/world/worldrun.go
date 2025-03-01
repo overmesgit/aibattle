@@ -89,11 +89,18 @@ func RunGame(
 					actionLog.Errors = append(actionLog.Errors, actionErr.Error())
 					continue
 				}
-				err := gameState.UpdateGameState(*unit, act, prevAction)
+				err := gameState.UpdateGameState(unit, act, prevAction)
 				if err != nil {
 					actionLog.Errors = append(actionLog.Errors, err.Error())
 					log.Println(err)
 				}
+				log.Println(
+					lo.Find(
+						gameState.Units, func(item *Unit) bool {
+							return item.ID == unit.ID
+						},
+					),
+				)
 				prevAction = act.Action
 			}
 		}

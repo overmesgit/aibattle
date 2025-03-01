@@ -7,7 +7,9 @@ import (
 	"github.com/samber/lo"
 )
 
-func (gameState *GameState) UpdateGameState(unit Unit, action UnitAction, prevAction Action) error {
+func (gameState *GameState) UpdateGameState(
+	unit *Unit, action UnitAction, prevAction Action,
+) error {
 	if action.Action == "" {
 		return errors.New("empty action")
 	}
@@ -21,7 +23,7 @@ func (gameState *GameState) UpdateGameState(unit Unit, action UnitAction, prevAc
 	case HOLD:
 		return nil
 	case MOVE:
-		err := gameState.MoveUnit(&unit, action.Target)
+		err := gameState.MoveUnit(unit, action.Target)
 		if err != nil {
 			return err
 		}
