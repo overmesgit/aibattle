@@ -6,6 +6,11 @@ import (
 )
 
 func main() {
-	fmt.Println(rules.GetGameDescription(""))
+	rules, err := rules.GetGameDescription(rules.LangJS)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(rules)
 
 }

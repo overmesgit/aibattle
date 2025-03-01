@@ -23,36 +23,47 @@ Can forfeit movement for an additional action
 Units descriptions:
 {{.UnitsDescription}}
 
-Each player is represented as a function, that process one unit term per call:
-GetTurnActions(input NextTurnInput) ActionResponse
-This function accepts one parameter:
- input - byte string encoded json.
+Each player is represented as a function, that process one unit action per call:
+function GetTurnActions(gameState, currentUnitID, actionIndex)
+that returns nextAction for the unit.
 
-Input argument is a game state with UnitID for which program must generate next actions.
-<NextTurnInput>
-{{.JSONState}}
-</NextTurnInput>
+Game state is a struct with all the units and board parameters.
+<gameState>
+{{.GameState}}
+</gameState>
 
-Function returns ActionResponse, which is next action for the unit specified in the second parameter as a json byte string.
-<ActionResponse>
+CurrentUnitID is an integer ID for which function must generate nextAction.
+CurrentUnitID can be found in gameState.
+
+ActionIndex is a string constant that represents the action to be performed.
+It can be one of the following:
+- FirstAction
+- SecondAction
+
+Function returns nextAction, which is the next action for the unit specified in
+CurrentUnitID parameter as a json object.
+Example:
+<nextAction>
 {{.NextActionExample}}
-</ActionResponse>
+</nextAction>
 
 Follow these guidelines:
 - Generate complete, compilable code.
 - You must follow language syntax.
-- Write an implementation of a team program for this game.
+- Write an implementation of a program for this game.
 - Output only code and nothing else.
 - Only use standard library.
-- You can get possible actions from NextTurnInput.
+- You can get possible actions from gameState.
+- Be concise and clear.
+- Don't add any comments.
 
-Generate code that will be added inside <template> tag to the PlayTurn function instead of <generated> tag.
-You must implement GetTurnActions(input NextTurnInput) ActionResponse function.
+Generate code that will be added inside <template> tag to the PlayTurn function instead of generated tag.
+You must implement function GetTurnActions(gameState, currentUnitID, actionIndex) function.
 
 <template>
 {{.LanguageTemplate}}
 </template>
 
-Prompt output template:
+You must generate output in this form:
 <sourcecode>
 </sourcecode>

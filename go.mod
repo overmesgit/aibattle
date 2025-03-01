@@ -5,6 +5,7 @@ go 1.23.3
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/anthropics/anthropic-sdk-go v0.2.0-alpha.8
+	github.com/dop251/goja v0.0.0-20241009100908-5f46f2705ca3
 	github.com/pocketbase/dbx v1.10.1
 	github.com/pocketbase/pocketbase v0.23.4
 	github.com/samber/lo v1.47.0
@@ -37,14 +38,17 @@ require (
 	github.com/aws/smithy-go v1.22.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
+	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/domodwyer/mailyak/v3 v3.6.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.7 // indirect
 	github.com/ganigeorgiev/fexpr v0.4.1 // indirect
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0 // indirect
+	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
+	github.com/google/pprof v0.0.0-20240727154555-813a5fbdbec8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect

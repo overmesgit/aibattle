@@ -76,20 +76,13 @@
           {{end}}
         <h1 class="text-xl">Prompt</h1>
         <div class="form-control">
-          <label class="label">
-            <span class="label-text">Programming Language</span>
-          </label>
-          <select name="language" class="select select-bordered w-full max-w-xs">
-            <option value="go" {{if eq .Language "go" }}selected{{end}}>Go</option>
-            <option value="py" {{if eq .Language "py" }}selected{{end}}>Python3</option>
-          </select>
           <div tabindex="0"
                class="my-2 collapse collapse-arrow border-base-300 bg-base-200 border">
             <input type="checkbox"/>
             <div class="collapse-title text-xl font-medium">Default prompt</div>
             <div class="collapse-content">
               <p id="default-prompt"
-                 style="white-space: pre; width: 800px">{{if eq .Language "go" }}{{.DefaultPrompts.go}}{{else}}{{.DefaultPrompts.py}}{{end}}</p>
+                 style="white-space: pre; width: 800px">{{.DefaultPrompts.js}}</p>
             </div>
           </div>
           <script>

@@ -1,7 +1,6 @@
 package battler
 
 import (
-	"aibattle/game"
 	"aibattle/game/world"
 	"bytes"
 	"compress/gzip"
@@ -66,7 +65,7 @@ func RunBattle(app *pocketbase.PocketBase, nextPromptID string) error {
 }
 
 func saveBattleResults(
-	app *pocketbase.PocketBase, result game.Result, user1Score *core.Record, oldScore1 float64,
+	app *pocketbase.PocketBase, result world.Result, user1Score *core.Record, oldScore1 float64,
 	prompt1 *core.Record, prompt2 *core.Record, battle *core.Record, user2Score *core.Record,
 	oldScore2 float64,
 ) error {
@@ -108,7 +107,7 @@ func saveBattleResults(
 	return nil
 }
 
-func saveBattle(app *pocketbase.PocketBase, result game.Result) (*core.Record, error) {
+func saveBattle(app *pocketbase.PocketBase, result world.Result) (*core.Record, error) {
 	compressedRes, zipErr := MarshalGzip(result)
 	if zipErr != nil {
 		return nil, fmt.Errorf("error comporessing result: %w", zipErr)
@@ -164,7 +163,7 @@ func getNextPrompt(
 
 func updateUserScores(
 	app *pocketbase.PocketBase, user1Score *core.Record, user2Score *core.Record,
-	result game.Result,
+	result world.Result,
 ) error {
 	return app.RunInTransaction(
 		func(txApp core.App) error {
@@ -261,7 +260,7 @@ func getNewScores(winner float64, looser float64, draw bool) (float64, float64) 
 	return newScore1, newScore2
 }
 
-func MarshalGzip(result game.Result) (string, error) {
+func MarshalGzip(result world.Result) (string, error) {
 	data, err := json.Marshal(result)
 	if err != nil {
 		return "", err

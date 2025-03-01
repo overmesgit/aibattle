@@ -14,10 +14,11 @@ type Position struct {
 }
 
 type GameState struct {
-	Turn   int     `json:"turn"`
-	Units  []*Unit `json:"units"`
-	Width  int     `json:"width"`
-	Height int     `json:"height"`
+	Turn          int                `json:"turn"`
+	Units         []*Unit            `json:"units"`
+	Width         int                `json:"width"`
+	Height        int                `json:"height"`
+	UnitActionMap map[Type]ActionMap `json:"unit_action_map"`
 }
 
 func (state GameState) RemoveDeadUnits() {
@@ -84,10 +85,11 @@ func GetInitialGameState() GameState {
 	)
 
 	return GameState{
-		Turn:   0,
-		Units:  units,
-		Width:  20,
-		Height: 20,
+		Turn:          0,
+		Units:         units,
+		Width:         20,
+		Height:        20,
+		UnitActionMap: UnitActionMap,
 	}
 }
 

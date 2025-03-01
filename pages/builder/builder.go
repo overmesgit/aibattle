@@ -2,15 +2,16 @@ package builder
 
 import (
 	"aibattle/game/rules"
+	"aibattle/game/world"
 	"context"
 	"errors"
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
+	"github.com/dop251/goja"
 )
 
 func GetProgram(
@@ -30,11 +31,96 @@ func GetProgram(
 	if err != nil {
 		return text, err
 	}
-	buildErr := buildImage(generatedCode, promptID, language)
-	if buildErr != nil {
-		return text, fmt.Errorf("error building image %s", buildErr)
+	err = RunGojaCodeTest(generatedCode)
+	if err != nil {
+		return text, err
 	}
 	return text, nil
+}
+
+func RunGojaCodeTest(generatedCode string) error {
+	// Create a new JavaScript runtime
+	vm := goja.New()
+	vm.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
+
+	// Define a console.log function and pass it to the JS runtime
+	consoleLog := func(call goja.FunctionCall) goja.Value {
+		// Convert all arguments to strings and join them with a space
+		var args []string
+		for _, arg := range call.Arguments {
+			args = append(args, fmt.Sprintf("%v", arg))
+		}
+		message := strings.Join(args, " ")
+		log.Println("[console.log]:", message)
+		return goja.Undefined()
+	}
+
+	// Create console object and set log method
+	vm.Set("log", consoleLog)
+
+	_, err := vm.RunString(generatedCode)
+	if err != nil {
+		log.Printf("Error running generated code: %v", err)
+		return fmt.Errorf("failed to run generated code: %w", err)
+	}
+
+	getTurnActionsValue := vm.Get("GetTurnActions")
+	if getTurnActionsValue == nil || goja.IsUndefined(getTurnActionsValue) {
+		log.Printf("GetTurnActions function not found in the generated code")
+		return errors.New("GetTurnActions function not found in the generated code")
+	}
+
+	getTurnActions, ok := goja.AssertFunction(getTurnActionsValue)
+	if !ok {
+		log.Printf("GetTurnActions is not a function")
+		return errors.New("GetTurnActions is not a function")
+	}
+
+	// Create a mock game state for testing
+	gameState := world.GetInitialGameState()
+	// Call the function with mock values
+	res, err := getTurnActions(
+		goja.Undefined(), vm.ToValue(gameState),
+		vm.ToValue(1), vm.ToValue("FirstAction"),
+	)
+	if err != nil {
+		log.Printf("Error calling GetTurnActions: %v", err)
+		return fmt.Errorf("error calling GetTurnActions: %w", err)
+	}
+
+	log.Printf("Test ouput %v\n", res.Export())
+
+	// Try to parse the result into a UnitAction structure using a map approach
+	action := world.UnitAction{}
+
+	// Use res.Export() directly to get the result as a map
+	resultMap, ok := res.Export().(map[string]any)
+	if !ok {
+		log.Printf("Warning: Result is not a map: %v", res.Export())
+		log.Printf("Raw result: %#v", res.Export())
+	} else {
+		// Extract action from map
+		if actionVal, ok := resultMap["action"]; ok {
+			if actionStr, ok := actionVal.(string); ok {
+				action.Action = world.Action(actionStr)
+			}
+		}
+		// Extract target from map if it exists
+		if targetVal, ok := resultMap["target"]; ok {
+			if targetMap, ok := targetVal.(map[string]any); ok {
+				x, xOk := targetMap["x"].(int64)
+				y, yOk := targetMap["y"].(int64)
+				if xOk && yOk {
+					action.Target = &world.Position{
+						X: int(x),
+						Y: int(y),
+					}
+				}
+			}
+		}
+		log.Printf("Successfully tested the generated code. Parsed action: %+v", action)
+	}
+	return nil
 }
 
 func GetProgramWithPrompt(
@@ -72,48 +158,29 @@ func GetProgramWithPrompt(
 	return text, nil
 }
 
-func buildImage(generatedCode string, promptID string, language string) error {
-	// Create temporary directory
-	tmpDir, err := os.MkdirTemp("", "aibattle-*")
-	defer os.RemoveAll(tmpDir)
-	if err != nil {
-		return err
-	}
-
-	var progErr error
-	if language == rules.LangGo {
-		progErr = GetGoProgram(generatedCode, tmpDir)
-	} else if language == rules.LangPy {
-		progErr = GetPyProgram(generatedCode, tmpDir)
-	} else {
-		progErr = errors.New("unknown language")
-	}
-	if progErr != nil {
-		return progErr
-	}
-
-	log.Println("Building image")
-	errBuild := BuildImageInTmpFolder(tmpDir, promptID)
-	if errBuild != nil {
-		return errBuild
-	}
-	return nil
-}
-
 func AddGeneratedCodeToTheGameTemplate(txt string, language string) (string, error) {
 	mainTemplate := ""
-	if language == rules.LangGo {
+	switch language {
+	case rules.LangGo:
 		mainTemplate = "game/rules/templates/go_test.go"
-	} else if language == rules.LangPy {
+	case rules.LangPy:
 		mainTemplate = "game/rules/templates/py.py"
+	case rules.LangJS:
+		mainTemplate = "game/rules/templates/js.js"
 	}
 	tfile, err := os.ReadFile(mainTemplate)
 	if err != nil {
 		return "", err
 	}
 
+	strContent := string(tfile)
+	getTagCount := strings.Count(strContent, "<generated>")
+	if getTagCount == 0 || getTagCount > 1 {
+		return "", fmt.Errorf("no or too many <generated> tags found")
+	}
+
 	// Replace <generated> with provided text
-	template := strings.Replace(string(tfile), "<generated>", txt, 1)
+	template := strings.Replace(strContent, "<generated>", txt, 1)
 	return template, nil
 }
 
@@ -128,26 +195,4 @@ func getContentBetweenTags(content, startTag, endTag string) (string, error) {
 		return "", fmt.Errorf("text between tags are empty")
 	}
 	return tagText, nil
-}
-
-func BuildImageInTmpFolder(tmpDir string, promptID string) error {
-	// Build the Docker image
-	log.Printf("Building image in tmp folder %s", tmpDir)
-	imageTag := fmt.Sprintf("ai%s:latest", promptID)
-	cmd := exec.Command("docker", "build", "-t", imageTag, tmpDir)
-	var stdout strings.Builder
-	cmd.Stdout = &stdout
-
-	var stderr strings.Builder
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf(
-			"failed to build docker image: %v\nstderr: %s\noutput: %s", err, stderr.String(),
-			stdout.String(),
-		)
-	}
-
-	return nil
 }

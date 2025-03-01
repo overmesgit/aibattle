@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"aibattle/game"
 	"aibattle/game/world"
 	"bytes"
 	"encoding/json"
@@ -9,26 +8,27 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
+
+	"github.com/samber/lo"
 )
 
 const (
 	LangPy = "py"
 	LangGo = "go"
+	LangJS = "js"
 )
 
-var AvailableLanguages = []string{LangPy, LangGo}
+var AvailableLanguages = []string{LangJS}
 
 func GetGameDescription(language string) (string, error) {
 	state := world.GetInitialGameState()
-	unitsList := []*world.Unit{
-		world.NewWarrior(world.TeamA, world.Position{X: 20, Y: 20}),
-		world.NewHealer(world.TeamA, world.Position{X: 20, Y: 20}),
-		world.NewMage(world.TeamA, world.Position{X: 20, Y: 20}),
-		world.NewRogue(world.TeamA, world.Position{X: 20, Y: 20}),
-	}
 	var unitsDescription strings.Builder
-	for _, unit := range unitsList {
-		actions := printActions(unit.Actions)
+	uniqueUnits := lo.Filter(state.Units, func(unit *world.Unit, index int) bool {
+		return index%2 == 0
+	})
+	for _, unit := range uniqueUnits {
+		unitActions := state.UnitActionMap[unit.Type]
+		actions := printActions(unitActions)
 		unitsDescription.WriteString(
 			fmt.Sprintf(
 				"Unit: type %s, initiative %d, hp %d, actions %s\n", unit.Type, unit.Initiative,
@@ -38,16 +38,13 @@ func GetGameDescription(language string) (string, error) {
 		)
 	}
 
-	jsonState, err := json.MarshalIndent(game.NextTurnInput{state, 1}, "", "  ")
+	gameStateJson, err := json.MarshalIndent(state, "", "  ")
 	if err != nil {
 		return "", err
 	}
 
 	nextActionExample, err := json.Marshal(
-		game.TurnAction{[2]*game.UnitAction{
-			{Action: world.MOVE, Target: &world.Position{X: 20, Y: 20}},
-			{Action: world.ATTACK1, Target: &world.Position{X: 21, Y: 20}},
-		}, 10},
+		world.UnitAction{Action: world.MOVE, Target: &world.Position{X: 20, Y: 20}},
 	)
 	if err != nil {
 		return "", err
@@ -67,14 +64,14 @@ func GetGameDescription(language string) (string, error) {
 		NumUnitsPerTeam   int
 		GridSize          string
 		UnitsDescription  string
-		JSONState         string
+		GameState         string
 		NextActionExample string
 		LanguageTemplate  string
 	}{
 		NumUnitsPerTeam:   len(state.Units) / 2,
 		GridSize:          fmt.Sprintf("%dx%d", state.Height, state.Width),
 		UnitsDescription:  unitsDescription.String(),
-		JSONState:         string(jsonState),
+		GameState:         string(gameStateJson),
 		NextActionExample: string(nextActionExample),
 		LanguageTemplate:  languageTemplate,
 	}
@@ -94,6 +91,8 @@ func getLanguageTemplate(language string) (string, error) {
 		languageTemplate = "game/rules/templates/py.py"
 	case LangGo:
 		languageTemplate = "game/rules/templates/go_test.go"
+	case LangJS:
+		languageTemplate = "game/rules/templates/js.js"
 	default:
 		return "", errors.New("unknown language")
 	}

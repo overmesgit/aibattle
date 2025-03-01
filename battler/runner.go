@@ -2,6 +2,7 @@ package battler
 
 import (
 	"aibattle/game"
+	"aibattle/game/world"
 	"context"
 	"fmt"
 	"log"
@@ -16,7 +17,7 @@ import (
 
 func GetBattleResult(
 	ctx context.Context, prompt1 *core.Record, prompt2 *core.Record,
-) (game.Result, error) {
+) (world.Result, error) {
 	fmt.Printf(
 		"Run battle team a user: %s prompt %s language %s\n",
 		prompt1.GetString("user"), prompt1.Id, prompt1.GetString("language"),
@@ -47,14 +48,14 @@ func GetBattleResult(
 
 	err := compose.Run()
 	if err != nil {
-		return game.Result{}, fmt.Errorf("failed to start containers: %v", err)
+		return world.Result{}, fmt.Errorf("failed to start containers: %v", err)
 	}
 
 	result, err := game.RunGame()
 	result = setLogs(ctx, result, env)
 
 	if err != nil {
-		return game.Result{}, err
+		return world.Result{}, err
 	}
 	cleanup := exec.CommandContext(
 		ctx, "docker", "compose",
@@ -66,7 +67,7 @@ func GetBattleResult(
 	cleanup.Stdout = os.Stdout
 	err = cleanup.Run()
 	if err != nil {
-		return game.Result{}, fmt.Errorf("failed to start containers: %v", err)
+		return world.Result{}, fmt.Errorf("failed to start containers: %v", err)
 	}
 	// For now just return placeholder result
 	return result, nil
@@ -94,7 +95,7 @@ func killContainers(ctx context.Context) {
 	}
 }
 
-func setLogs(ctx context.Context, result game.Result, env []string) game.Result {
+func setLogs(ctx context.Context, result world.Result, env []string) world.Result {
 	teamOneLog, teamOneErr := GetServiceLogs(ctx, "team_one", env)
 	if teamOneErr != nil {
 		log.Println(teamOneErr)

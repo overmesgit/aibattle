@@ -56,24 +56,24 @@ type Unit struct {
 }
 
 var UnitActionMap = map[Type]ActionMap{
-	WARRIOR: ActionMap{
+	WARRIOR: {
 		Move:    &Move{3},
 		Hold:    &Move{},
 		Attack1: &Attack{1, 30},
 	},
-	HEALER: ActionMap{
+	HEALER: {
 		Move:    &Move{2},
 		Hold:    &Move{},
 		Attack1: &Attack{1, 10},
 		Skill1:  &Skill{HEAL, 5, 30, "heal"},
 	},
-	MAGE: ActionMap{
+	MAGE: {
 		Move:    &Move{2},
 		Hold:    &Move{},
 		Attack1: &Attack{1, 10},
 		Skill1:  &Skill{RANGE, 4, 40, "firebolt"},
 	},
-	ROGUE: ActionMap{
+	ROGUE: {
 		Move:    &Move{4},
 		Hold:    &Move{},
 		Attack1: &Attack{1, 25},

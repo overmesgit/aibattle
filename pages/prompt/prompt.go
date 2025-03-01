@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/samber/lo"
-
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
@@ -19,9 +17,8 @@ import (
 type Data struct {
 	User *core.Record
 
-	Text     string
-	Language string
-	Errors   []string
+	Text   string
+	Errors []string
 
 	ID             string
 	Output         string
@@ -64,7 +61,6 @@ func CreatePrompt(
 		if dataErr != nil {
 			return dataErr
 		}
-		data.Language = e.Request.FormValue("language")
 		data.Text = e.Request.FormValue("text")
 		newPrompt, validationErr, promptErr := CreateUpdatePrompt(data, e.Auth.Id, app, nil)
 		if promptErr != nil {
@@ -101,7 +97,6 @@ func UpdatePrompt(
 		}
 
 		data.Text = e.Request.FormValue("text")
-		data.Language = e.Request.FormValue("language")
 
 		updatedPrompt, validationErr, promptErr := CreateUpdatePrompt(
 			data, e.Auth.Id, app, prompt,
@@ -162,7 +157,7 @@ func ActivatePrompt(
 
 func getRules() (map[string]string, error) {
 	res := make(map[string]string)
-	for _, key := range []string{rules.LangPy, rules.LangGo} {
+	for _, key := range rules.AvailableLanguages {
 		gameRules, err := rules.GetGameDescription(key)
 		if err != nil {
 			return nil, err
@@ -203,7 +198,6 @@ func defaultData(
 		data.Text = prompt.GetString("text")
 		data.Output = prompt.GetString("output")
 		data.Status = prompt.GetString("status")
-		data.Language = prompt.GetString("language")
 		promptError := prompt.GetString("error")
 		if promptError != "" {
 			data.Errors = []string{promptError}
@@ -227,9 +221,6 @@ func CreateUpdatePrompt(
 	if len(data.Text) > 300 {
 		errors = append(errors, "Text too long")
 	}
-	if lo.IndexOf(rules.AvailableLanguages, data.Language) == -1 {
-		errors = append(errors, "Language not available")
-	}
 	if time.Now().Sub(UserRateLimiter[userID]).Seconds() < 60 {
 		errors = append(errors, "We allow only one update per minute per user, please try later.")
 	}
@@ -249,7 +240,7 @@ func CreateUpdatePrompt(
 	}
 	newPrompt.Set("text", data.Text)
 	newPrompt.Set("user", userID)
-	newPrompt.Set("language", data.Language)
+	newPrompt.Set("language", rules.LangJS)
 	newPrompt.Set("status", "")
 	newPrompt.Set("output", "")
 	saveErr := app.Save(newPrompt)
