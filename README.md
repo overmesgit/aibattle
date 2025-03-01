@@ -1,14 +1,13 @@
 ## TODO
 
-* use only js with goja
-* new game view
-* activate first prompt immediately
-* keep all turn in one array
 * implement auto play button
 * deploy only gcp run
+* time limits for goja
+* catch exceptions in goja
 
 ## Ideas
 
+* new game view
 * mobile friendly
 * request time limit for getting next action
 * go lang template should use world objects directly

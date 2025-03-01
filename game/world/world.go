@@ -14,11 +14,11 @@ type Position struct {
 }
 
 type GameState struct {
-	Turn          int                `json:"turn"`
-	Units         []*Unit            `json:"units"`
-	Width         int                `json:"width"`
-	Height        int                `json:"height"`
-	UnitActionMap map[Type]ActionMap `json:"unit_action_map"`
+	Turn          int                  `json:"turn"`
+	Units         []*Unit              `json:"units"`
+	Width         int                  `json:"width"`
+	Height        int                  `json:"height"`
+	UnitActionMap map[string]ActionMap `json:"unit_action_map"`
 }
 
 func (state GameState) RemoveDeadUnits() {
@@ -29,15 +29,13 @@ func (state GameState) RemoveDeadUnits() {
 	)
 }
 
-type Team int
-
 const (
-	Draw Team = iota
+	Draw int = iota
 	TeamA
 	TeamB
 )
 
-func GetTeamName(teamID Team) string {
+func GetTeamName(teamID int) string {
 	switch teamID {
 	case Draw:
 		return "Draw"

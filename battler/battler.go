@@ -43,7 +43,7 @@ func RunBattle(app *pocketbase.PocketBase, nextPromptID string) error {
 		return fmt.Errorf("error running battle: %w", err)
 	}
 
-	err = updateUserScores(app, user1Score, user2Score, result)
+	err = updateUserScores(app, user1Score, user2Score, result.Winner)
 	if err != nil {
 		return fmt.Errorf("error updating scores: %w", err)
 	}
@@ -163,7 +163,7 @@ func getNextPrompt(
 
 func updateUserScores(
 	app *pocketbase.PocketBase, user1Score *core.Record, user2Score *core.Record,
-	result world.Result,
+	winnerTeam int,
 ) error {
 	return app.RunInTransaction(
 		func(txApp core.App) error {
@@ -176,14 +176,14 @@ func updateUserScores(
 				user2Score.Id, user2Score.GetFloat("score"),
 			)
 			winner, looser := user1Score, user2Score
-			if result.Winner != world.TeamA {
+			if winnerTeam != world.TeamA {
 				winner, looser = looser, winner
 			}
 			newScore1, newScore2 := getNewScores(
-				winner.GetFloat("score"), looser.GetFloat("score"), result.Winner == world.Draw,
+				winner.GetFloat("score"), looser.GetFloat("score"), winnerTeam == world.Draw,
 			)
 			fmt.Printf(
-				"team %d won, winner %s score %f, looser %s score %f\n", result.Winner, winner.Id,
+				"team %d won, winner %s score %f, looser %s score %f\n", winnerTeam, winner.Id,
 				newScore1, looser.Id, newScore2,
 			)
 			winner.Set("score", newScore1)

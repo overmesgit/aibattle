@@ -1,7 +1,7 @@
 package world
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/samber/lo"
 )
@@ -11,12 +11,13 @@ type ActionLog struct {
 	UnitID      int        `json:"unit_id"`
 	UnitActions UnitAction `json:"unit_action"`
 	Errors      []string   `json:"errors"`
-	UnitsAfter  []Unit     `json:"units,omitempty"`
+	// TODO: fill units after
+	UnitsAfter []Unit `json:"units,omitempty"`
 }
 
 type Result struct {
 	Turns       []ActionLog `json:"turns"`
-	Winner      Team        `json:"winner"`
+	Winner      int         `json:"winner"`
 	InitUnits   []*Unit     `json:"init_units"`
 	TeamOneLogs string      `json:"team_one_logs"`
 	TeamTwoLogs string      `json:"team_two_logs"`
@@ -41,7 +42,11 @@ type ActionIndex string
 var FirstAction ActionIndex = "FirstAction"
 var SecondAction ActionIndex = "SecondAction"
 
-func RunGame(nextAction func(Team, GameState, int, ActionIndex) (UnitAction, error)) (Result, error) {
+func RunGame(
+	nextAction func(
+		int, GameState, int, ActionIndex,
+	) (UnitAction, error),
+) (Result, error) {
 	gameState := GetInitialGameState()
 	maxTurns := 50
 
@@ -59,7 +64,7 @@ func RunGame(nextAction func(Team, GameState, int, ActionIndex) (UnitAction, err
 	for turn := range maxTurns {
 		gameState.Turn = turn
 
-		fmt.Printf(
+		log.Printf(
 			"Turn %d TeamA %d TeamB %d\n", turn, lo.SumBy(teamA, calcHP), lo.SumBy(teamB, calcHP),
 		)
 
@@ -79,6 +84,7 @@ func RunGame(nextAction func(Team, GameState, int, ActionIndex) (UnitAction, err
 				actionLog := result.NewActionLog(turn, unit.ID)
 
 				act, actionErr := nextAction(unit.Team, gameState, unit.ID, actIndex)
+				log.Printf("next action %v %+v %+v %v", unit.ID, act, act.Target, actionErr)
 				if actionErr != nil {
 					actionLog.Errors = append(actionLog.Errors, actionErr.Error())
 					continue
@@ -86,6 +92,7 @@ func RunGame(nextAction func(Team, GameState, int, ActionIndex) (UnitAction, err
 				err := gameState.UpdateGameState(*unit, act, prevAction)
 				if err != nil {
 					actionLog.Errors = append(actionLog.Errors, err.Error())
+					log.Println(err)
 				}
 				prevAction = act.Action
 			}
@@ -97,21 +104,21 @@ func RunGame(nextAction func(Team, GameState, int, ActionIndex) (UnitAction, err
 
 func checkWinningTeam(
 	teamA []*Unit, gameState GameState, teamB []*Unit,
-) (Team, bool) {
+) (int, bool) {
 	teamA = lo.Filter(gameState.Units, AliveTeamUnits(TeamA))
 	if len(teamA) == 0 {
-		fmt.Println("Team B wins!")
+		log.Println("Team B wins!")
 		return TeamB, true
 	}
 	teamB = lo.Filter(gameState.Units, AliveTeamUnits(TeamB))
 	if len(teamB) == 0 {
-		fmt.Println("Team A wins!")
+		log.Println("Team A wins!")
 		return TeamA, true
 	}
 	return -1, false
 }
 
-func AliveTeamUnits(team Team) func(unit *Unit, index int) bool {
+func AliveTeamUnits(team int) func(unit *Unit, index int) bool {
 	return func(unit *Unit, index int) bool {
 		return unit.IsAlive() && unit.Team == team
 	}

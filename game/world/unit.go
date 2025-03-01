@@ -4,8 +4,6 @@ import (
 	"sync"
 )
 
-type Type string
-
 const (
 	WARRIOR = "warrior"
 	HEALER  = "healer"
@@ -22,15 +20,13 @@ type Move struct {
 	Distance int `json:"distance,omitempty"`
 }
 
-type Effect string
-
 const (
 	HEAL  = "heal"
 	RANGE = "range"
 )
 
 type Skill struct {
-	Effect Effect `json:"effect"`
+	Effect string `json:"effect"`
 	Range  int    `json:"range"`
 	Value  int    `json:"value"`
 	Name   string `json:"name"`
@@ -47,15 +43,15 @@ type ActionMap struct {
 
 type Unit struct {
 	ID         int      `json:"id"`
-	Team       Team     `json:"team"`
-	Type       Type     `json:"type"`
+	Team       int      `json:"team"`
+	Type       string   `json:"type"`
 	Initiative int      `json:"initiative"`
 	HP         int      `json:"hp"`
 	MaxHP      int      `json:"maxHp"`
 	Position   Position `json:"position"`
 }
 
-var UnitActionMap = map[Type]ActionMap{
+var UnitActionMap = map[string]ActionMap{
 	WARRIOR: {
 		Move:    &Move{3},
 		Hold:    &Move{},
@@ -86,7 +82,7 @@ func (u *Unit) IsAlive() bool {
 
 var counter = sync.OnceValue(NewCounter)()
 
-func NewWarrior(team Team, position Position) *Unit {
+func NewWarrior(team int, position Position) *Unit {
 	return &Unit{
 		ID:         counter.Get(),
 		Team:       team,
@@ -98,7 +94,7 @@ func NewWarrior(team Team, position Position) *Unit {
 	}
 }
 
-func NewHealer(team Team, position Position) *Unit {
+func NewHealer(team int, position Position) *Unit {
 	return &Unit{
 		ID:         counter.Get(),
 		Team:       team,
@@ -110,7 +106,7 @@ func NewHealer(team Team, position Position) *Unit {
 	}
 }
 
-func NewMage(team Team, position Position) *Unit {
+func NewMage(team int, position Position) *Unit {
 	return &Unit{
 		ID:         counter.Get(),
 		Team:       team,
@@ -122,7 +118,7 @@ func NewMage(team Team, position Position) *Unit {
 	}
 }
 
-func NewRogue(team Team, position Position) *Unit {
+func NewRogue(team int, position Position) *Unit {
 	return &Unit{
 		ID:         counter.Get(),
 		Team:       team,

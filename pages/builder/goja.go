@@ -43,7 +43,7 @@ func GetGOJAFunction(generatedCode string) (func(
 	) (world.UnitAction, error) {
 		res, err := getTurnActions(
 			goja.Undefined(), vm.ToValue(state),
-			vm.ToValue(1), vm.ToValue("FirstAction"),
+			vm.ToValue(1), vm.ToValue(actionIndex),
 		)
 		if err != nil {
 			return world.UnitAction{}, fmt.Errorf("error calling GetTurnActions: %w", err)

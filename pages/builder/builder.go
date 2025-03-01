@@ -49,10 +49,12 @@ func RunGOJACodeTest(generatedCode string) error {
 		gameState, 1, "FirstAction",
 	)
 	if err != nil {
-		log.Printf("Error calling GetTurnActions: %v", err)
-		return fmt.Errorf("error calling GetTurnActions: %w", err)
+		log.Printf("Error calling getNextAction: %v", err)
+		return fmt.Errorf("error calling getNextAction: %w", err)
 	}
-	log.Printf("Successfully tested the generated code. Parsed action: %+v", action)
+	log.Printf(
+		"Successfully tested the generated code. Parsed action: %+v %+v", action, action.Target,
+	)
 	return nil
 }
 
@@ -107,13 +109,13 @@ func AddGeneratedCodeToTheGameTemplate(txt string, language string) (string, err
 	}
 
 	strContent := string(tfile)
-	getTagCount := strings.Count(strContent, "<generated>")
+	getTagCount := strings.Count(strContent, "<generated></generated>")
 	if getTagCount == 0 || getTagCount > 1 {
 		return "", fmt.Errorf("no or too many <generated> tags found")
 	}
 
 	// Replace <generated> with provided text
-	template := strings.Replace(strContent, "<generated>", txt, 1)
+	template := strings.Replace(strContent, "<generated></generated>", txt, 1)
 	return template, nil
 }
 
