@@ -41,7 +41,7 @@ type ActionIndex string
 var FirstAction ActionIndex = "FirstAction"
 var SecondAction ActionIndex = "SecondAction"
 
-func RunGame(nextAction func(GameState, int, ActionIndex) (UnitAction, error)) (Result, error) {
+func RunGame(nextAction func(Team, GameState, int, ActionIndex) (UnitAction, error)) (Result, error) {
 	gameState := GetInitialGameState()
 	maxTurns := 50
 
@@ -78,7 +78,7 @@ func RunGame(nextAction func(GameState, int, ActionIndex) (UnitAction, error)) (
 			for _, actIndex := range []ActionIndex{FirstAction, SecondAction} {
 				actionLog := result.NewActionLog(turn, unit.ID)
 
-				act, actionErr := nextAction(gameState, unit.ID, actIndex)
+				act, actionErr := nextAction(unit.Team, gameState, unit.ID, actIndex)
 				if actionErr != nil {
 					actionLog.Errors = append(actionLog.Errors, actionErr.Error())
 					continue

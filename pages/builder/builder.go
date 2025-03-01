@@ -4,14 +4,12 @@ import (
 	"aibattle/game/rules"
 	"aibattle/game/world"
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/dop251/goja"
 )
 
 func GetProgram(
@@ -31,98 +29,30 @@ func GetProgram(
 	if err != nil {
 		return text, err
 	}
-	err = RunGojaCodeTest(generatedCode)
+	err = RunGOJACodeTest(generatedCode)
 	if err != nil {
 		return text, err
 	}
 	return text, nil
 }
 
-func RunGojaCodeTest(generatedCode string) error {
-	// Create a new JavaScript runtime
-	vm := goja.New()
-	vm.SetFieldNameMapper(goja.TagFieldNameMapper("json", true))
-
-	// Define a console.log function and pass it to the JS runtime
-	consoleLog := func(call goja.FunctionCall) goja.Value {
-		// Convert all arguments to strings and join them with a space
-		var args []string
-		for _, arg := range call.Arguments {
-			args = append(args, fmt.Sprintf("%v", arg))
-		}
-		message := strings.Join(args, " ")
-		log.Println("[console.log]:", message)
-		return goja.Undefined()
-	}
-
-	// Create console object and set log method
-	err := vm.Set("log", consoleLog)
-	if err != nil {
-		return err
-	}
-
-	_, err = vm.RunString(generatedCode)
-	if err != nil {
-		log.Printf("Error running generated code: %v", err)
-		return fmt.Errorf("failed to run generated code: %w", err)
-	}
-
-	getTurnActionsValue := vm.Get("GetTurnActions")
-	if getTurnActionsValue == nil || goja.IsUndefined(getTurnActionsValue) {
-		log.Printf("GetTurnActions function not found in the generated code")
-		return errors.New("GetTurnActions function not found in the generated code")
-	}
-
-	getTurnActions, ok := goja.AssertFunction(getTurnActionsValue)
-	if !ok {
-		log.Printf("GetTurnActions is not a function")
-		return errors.New("GetTurnActions is not a function")
-	}
-
-	// Create a mock game state for testing
+func RunGOJACodeTest(generatedCode string) error {
 	gameState := world.GetInitialGameState()
-	// Call the function with mock values
-	res, err := getTurnActions(
-		goja.Undefined(), vm.ToValue(gameState),
-		vm.ToValue(1), vm.ToValue("FirstAction"),
+
+	getNextAction, err := GetGOJAFunction(generatedCode)
+	if err != nil {
+		log.Printf("Error preparing js function: %v", err)
+		return fmt.Errorf("error preparing js function: %w", err)
+	}
+
+	action, err := getNextAction(
+		gameState, 1, "FirstAction",
 	)
 	if err != nil {
 		log.Printf("Error calling GetTurnActions: %v", err)
 		return fmt.Errorf("error calling GetTurnActions: %w", err)
 	}
-
-	log.Printf("Test ouput %v\n", res.Export())
-
-	// Try to parse the result into a UnitAction structure using a map approach
-	action := world.UnitAction{}
-
-	// Use res.Export() directly to get the result as a map
-	resultMap, ok := res.Export().(map[string]any)
-	if !ok {
-		log.Printf("Warning: Result is not a map: %v", res.Export())
-		log.Printf("Raw result: %#v", res.Export())
-	} else {
-		// Extract action from map
-		if actionVal, ok := resultMap["action"]; ok {
-			if actionStr, ok := actionVal.(string); ok {
-				action.Action = world.Action(actionStr)
-			}
-		}
-		// Extract target from map if it exists
-		if targetVal, ok := resultMap["target"]; ok {
-			if targetMap, ok := targetVal.(map[string]any); ok {
-				x, xOk := targetMap["x"].(int64)
-				y, yOk := targetMap["y"].(int64)
-				if xOk && yOk {
-					action.Target = &world.Position{
-						X: int(x),
-						Y: int(y),
-					}
-				}
-			}
-		}
-		log.Printf("Successfully tested the generated code. Parsed action: %+v", action)
-	}
+	log.Printf("Successfully tested the generated code. Parsed action: %+v", action)
 	return nil
 }
 

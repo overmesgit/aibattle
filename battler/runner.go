@@ -1,14 +1,9 @@
 package battler
 
 import (
-	"aibattle/game"
 	"aibattle/game/world"
 	"context"
 	"fmt"
-	"github.com/samber/lo"
-	"log"
-	"os"
-	"os/exec"
 
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -25,82 +20,22 @@ func GetBattleResult(
 		prompt2.GetString("user"), prompt2.Id, prompt2.GetString("language"),
 	)
 
-	// Get all container IDs
-	//killContainers(ctx)
-
-	// Set up environment variables for docker-compose
-	env := []string{
-		"TEAM_ONE=ai" + prompt1.Id,
-		"TEAM_TWO=ai" + prompt2.Id,
-	}
-
-	// Start docker compose with the environment variables
-	compose := exec.CommandContext(
-		ctx, "docker", "compose",
-		"-f", "docker_test/compose.yaml",
-		"up", "--wait",
-	)
-	compose.Env = env
-	compose.Stderr = os.Stderr
-	compose.Stdout = os.Stdout
-
-	err := compose.Run()
-	if err != nil {
-		return world.Result{}, fmt.Errorf("failed to start containers: %v", err)
-	}
-
-	result, err := game.RunGame()
-	result = setLogs(ctx, result, env)
+	result, err := world.RunGame(Prepare(prompt1.GetString("output"), prompt2.GetString("output")))
 
 	if err != nil {
 		return world.Result{}, err
-	}
-	cleanup := exec.CommandContext(
-		ctx, "docker", "compose",
-		"-f", "docker_test/compose.yaml",
-		"down", "--timeout", "1",
-	)
-	cleanup.Env = env
-	cleanup.Stderr = os.Stderr
-	cleanup.Stdout = os.Stdout
-	err = cleanup.Run()
-	if err != nil {
-		return world.Result{}, fmt.Errorf("failed to start containers: %v", err)
 	}
 	// For now just return placeholder result
 	return result, nil
 }
 
-func setLogs(ctx context.Context, result world.Result, env []string) world.Result {
-	teamOneLog, teamOneErr := GetServiceLogs(ctx, "team_one", env)
-	if teamOneErr != nil {
-		log.Println(teamOneErr)
+func Prepare(team1Text, team2Text string) func(
+	world.Team, world.GameState, int, world.ActionIndex,
+) (world.UnitAction, error) {
+	return func(
+		team world.Team, state world.GameState, unitID int, actionIndex world.ActionIndex,
+	) (world.UnitAction, error) {
+
+		return world.UnitAction{}, nil
 	}
-	teamTwoLog, teamTwoErr := GetServiceLogs(ctx, "team_two", env)
-	if teamTwoErr != nil {
-		log.Println(teamTwoErr)
-	}
-
-	logSize := 1000
-	result.TeamOneLogs = lo.Substring(teamOneLog, -logSize, uint(logSize))
-	result.TeamTwoLogs = lo.Substring(teamTwoLog, -logSize, uint(logSize))
-	return result
-}
-
-func GetServiceLogs(ctx context.Context, serviceName string, env []string) (string, error) {
-	logs := exec.CommandContext(
-		ctx, "docker", "compose",
-		"-f", "docker_test/compose.yaml",
-		"logs",
-		serviceName,
-		"--no-color",
-	)
-	logs.Env = env
-
-	output, err := logs.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get logs for service %s: %v", serviceName, err)
-	}
-
-	return string(output), nil
 }
