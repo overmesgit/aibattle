@@ -1,5 +1,6 @@
 ## TODO
 
+* send previous action to the function
 * implement auto play button
 * deploy only gcp run
 * time limits for goja

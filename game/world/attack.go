@@ -4,7 +4,7 @@ import (
 	"errors"
 )
 
-func (state *GameState) AttackUnit(unit Unit, target *Position) error {
+func (gameState *GameState) AttackUnit(unit Unit, target *Position) error {
 	if target == nil {
 		return errors.New("target is nil")
 	}
@@ -18,7 +18,7 @@ func (state *GameState) AttackUnit(unit Unit, target *Position) error {
 		return errors.New("target is out of range")
 	}
 
-	targetUnit, err := state.FindUnit(*target)
+	targetUnit, err := gameState.FindUnit(*target)
 	if err != nil {
 		return err
 	}

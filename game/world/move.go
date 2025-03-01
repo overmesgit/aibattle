@@ -2,13 +2,13 @@ package world
 
 import "errors"
 
-func (state *GameState) MoveUnit(unit *Unit, target *Position) error {
+func (gameState *GameState) MoveUnit(unit *Unit, target *Position) error {
 	if target == nil {
 		return errors.New("target is nil")
 	}
 
 	// Check boundaries
-	if target.X < 0 || target.X >= state.Width || target.Y < 0 || target.Y >= state.Height {
+	if target.X < 0 || target.X >= gameState.Width || target.Y < 0 || target.Y >= gameState.Height {
 		return errors.New("target is out of map range")
 	}
 
@@ -19,7 +19,7 @@ func (state *GameState) MoveUnit(unit *Unit, target *Position) error {
 	}
 
 	// Check if target position is occupied
-	occupied := state.IsOccupied(*target)
+	occupied := gameState.IsOccupied(*target)
 	if occupied {
 		return errors.New("target is occupied")
 	}

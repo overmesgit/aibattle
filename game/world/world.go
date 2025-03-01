@@ -21,9 +21,9 @@ type GameState struct {
 	UnitActionMap map[string]ActionMap `json:"unit_action_map"`
 }
 
-func (state GameState) RemoveDeadUnits() {
-	state.Units = lo.Filter(
-		state.Units, func(unit *Unit, index int) bool {
+func (gameState *GameState) RemoveDeadUnits() {
+	gameState.Units = lo.Filter(
+		gameState.Units, func(unit *Unit, index int) bool {
 			return unit.IsAlive()
 		},
 	)
@@ -93,8 +93,8 @@ func GetInitialGameState() GameState {
 
 var unitNotFoundErr = errors.New("unit not found")
 
-func (state *GameState) FindUnit(position Position) (*Unit, error) {
-	for _, unit := range state.Units {
+func (gameState *GameState) FindUnit(position Position) (*Unit, error) {
+	for _, unit := range gameState.Units {
 		if unit.Position == position && unit.IsAlive() {
 
 			return unit, nil
@@ -103,17 +103,17 @@ func (state *GameState) FindUnit(position Position) (*Unit, error) {
 	return nil, unitNotFoundErr
 }
 
-func (state *GameState) IsOccupied(position Position) bool {
-	_, err := state.FindUnit(position)
+func (gameState *GameState) IsOccupied(position Position) bool {
+	_, err := gameState.FindUnit(position)
 	if errors.Is(err, unitNotFoundErr) {
 		return false
 	}
 	return true
 }
 
-func (state *GameState) CopyUnits() []Unit {
+func (gameState *GameState) CopyUnits() []Unit {
 	var res []Unit
-	for _, unit := range state.Units {
+	for _, unit := range gameState.Units {
 		copyUnit := *unit
 		res = append(res, copyUnit)
 	}

@@ -217,7 +217,7 @@ func TestCheckWinningTeam(t *testing.T) {
 
 	winner, gameOver := checkWinningTeam(teamA, state, teamB)
 	assert.False(t, gameOver)
-	assert.Equal(t, Team(-1), winner)
+	assert.Equal(t, -1, winner)
 
 	// Test TeamA wins
 	for _, unit := range state.Units {
