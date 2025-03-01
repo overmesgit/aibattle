@@ -5,12 +5,10 @@ import (
 	"aibattle/game/world"
 	"context"
 	"fmt"
+	"github.com/samber/lo"
 	"log"
 	"os"
 	"os/exec"
-	"strings"
-
-	"github.com/samber/lo"
 
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -71,28 +69,6 @@ func GetBattleResult(
 	}
 	// For now just return placeholder result
 	return result, nil
-}
-
-func killContainers(ctx context.Context) {
-	listCmd := exec.CommandContext(ctx, "docker", "ps", "-q")
-	containerOutput, listErr := listCmd.Output()
-	if listErr != nil {
-		log.Printf("Warning: listing containers failed: %v", listErr)
-	}
-	fmt.Println(string(containerOutput))
-	containerIDs := strings.Split(string(containerOutput), "\n")
-
-	for _, containerID := range containerIDs {
-		// Kill all running containers
-		killCmd := exec.CommandContext(
-			ctx, "docker", "kill", containerID,
-		)
-		killCmd.Stderr = os.Stderr
-		killCmd.Stdout = os.Stdout
-		if err := killCmd.Run(); err != nil {
-			log.Printf("Warning: kill containers failed: %v", err)
-		}
-	}
 }
 
 func setLogs(ctx context.Context, result world.Result, env []string) world.Result {

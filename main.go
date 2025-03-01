@@ -61,7 +61,7 @@ func main() {
 				se.Router.POST("/prompt", prompt.CreatePrompt(app, templ)),
 				se.Router.GET("/prompt/{id}", prompt.DetailedPrompt(app, templ)),
 				se.Router.POST("/prompt/{id}", prompt.UpdatePrompt(app, templ)),
-				se.Router.POST("/prompt/{id}/activate", prompt.ActivatePrompt(app, templ)),
+				se.Router.POST("/prompt/{id}/activate", prompt.ActivatePrompt(app)),
 				se.Router.GET("/battle", battle.List(app, templ)),
 				se.Router.GET("/battle/{id}", battle.Detailed(app, templ)),
 			)
@@ -89,7 +89,7 @@ func ProcessPrompts(app *pocketbase.PocketBase) {
 	for {
 		nextPrompt := <-prompt.PromptsToProcess
 		newProg, promptErr := builder.GetProgram(
-			context.Background(), nextPrompt.Id, nextPrompt.GetString("text"),
+			context.Background(), nextPrompt.GetString("text"),
 			nextPrompt.GetString("language"),
 		)
 		if promptErr != nil {

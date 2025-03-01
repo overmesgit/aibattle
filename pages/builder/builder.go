@@ -15,7 +15,7 @@ import (
 )
 
 func GetProgram(
-	ctx context.Context, promptID string, prompt string, language string,
+	ctx context.Context, prompt string, language string,
 ) (string, error) {
 	gameRules, err := rules.GetGameDescription(language)
 	if err != nil {
@@ -56,9 +56,12 @@ func RunGojaCodeTest(generatedCode string) error {
 	}
 
 	// Create console object and set log method
-	vm.Set("log", consoleLog)
+	err := vm.Set("log", consoleLog)
+	if err != nil {
+		return err
+	}
 
-	_, err := vm.RunString(generatedCode)
+	_, err = vm.RunString(generatedCode)
 	if err != nil {
 		log.Printf("Error running generated code: %v", err)
 		return fmt.Errorf("failed to run generated code: %w", err)

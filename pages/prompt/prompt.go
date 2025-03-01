@@ -117,7 +117,7 @@ func UpdatePrompt(
 var promptsRunsAfterActivation = make(map[string]time.Time)
 
 func ActivatePrompt(
-	app *pocketbase.PocketBase, templ *template.Template,
+	app *pocketbase.PocketBase,
 ) func(e *core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 		id := e.Request.PathValue("id")
