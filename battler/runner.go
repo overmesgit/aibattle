@@ -6,6 +6,7 @@ import (
 	"aibattle/pages/builder"
 	"context"
 	"fmt"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -35,7 +36,7 @@ func GetBattleResult(
 }
 
 func PrepareTeams(team1Text, team2Text string) (func(
-	int, world.GameState, int, world.ActionIndex,
+	int, world.GameState, int, string,
 ) (world.UnitAction, error), error) {
 	team1FullProg, err := builder.AddGeneratedCodeToTheGameTemplate(team1Text, rules.LangJS)
 	if err != nil {
@@ -56,9 +57,9 @@ func PrepareTeams(team1Text, team2Text string) (func(
 	}
 
 	return func(
-		team int, state world.GameState, unitID int, actionIndex world.ActionIndex,
+		team int, state world.GameState, unitID int, actionIndex string,
 	) (world.UnitAction, error) {
-		var f func(world.GameState, int, world.ActionIndex) (world.UnitAction, error)
+		var f func(world.GameState, int, string) (world.UnitAction, error)
 		switch team {
 		case world.TeamA:
 			f = team1Action

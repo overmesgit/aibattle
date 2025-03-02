@@ -37,14 +37,12 @@ type UnitAction struct {
 	Target *Position `json:"target"`
 }
 
-type ActionIndex string
-
-var FirstAction ActionIndex = "FirstAction"
-var SecondAction ActionIndex = "SecondAction"
+var FirstAction = "FirstAction"
+var SecondAction = "SecondAction"
 
 func RunGame(
 	nextAction func(
-		int, GameState, int, ActionIndex,
+		int, GameState, int, string,
 	) (UnitAction, error),
 ) (Result, error) {
 	gameState := GetInitialGameState()
@@ -80,11 +78,11 @@ func RunGame(
 			}
 
 			prevAction := Action("")
-			for _, actIndex := range []ActionIndex{FirstAction, SecondAction} {
+			for _, actIndex := range []string{FirstAction, SecondAction} {
 				actionLog := result.NewActionLog(turn, unit.ID)
 
 				act, actionErr := nextAction(unit.Team, gameState, unit.ID, actIndex)
-				log.Printf("next action %v %+v %+v %v", unit.ID, act, act.Target, actionErr)
+				// log.Printf("next action %v %+v %+v %v", unit.ID, act, act.Target, actionErr)
 				if actionErr != nil {
 					actionLog.Errors = append(actionLog.Errors, actionErr.Error())
 					continue
@@ -94,13 +92,6 @@ func RunGame(
 					actionLog.Errors = append(actionLog.Errors, err.Error())
 					log.Println(err)
 				}
-				log.Println(
-					lo.Find(
-						gameState.Units, func(item *Unit) bool {
-							return item.ID == unit.ID
-						},
-					),
-				)
 				prevAction = act.Action
 			}
 		}

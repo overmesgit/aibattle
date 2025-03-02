@@ -4,13 +4,14 @@ import (
 	"aibattle/game/world"
 	"errors"
 	"fmt"
-	"github.com/dop251/goja"
 	"log"
 	"strings"
+
+	"github.com/dop251/goja"
 )
 
 func GetGOJAFunction(generatedCode string) (func(
-	world.GameState, int, world.ActionIndex,
+	world.GameState, int, string,
 ) (world.UnitAction, error), error) {
 	// Create a new JavaScript runtime
 	vm := goja.New()
@@ -39,7 +40,7 @@ func GetGOJAFunction(generatedCode string) (func(
 	}
 
 	return func(
-		state world.GameState, unitID int, actionIndex world.ActionIndex,
+		state world.GameState, unitID int, actionIndex string,
 	) (world.UnitAction, error) {
 		res, err := getTurnActions(
 			goja.Undefined(), vm.ToValue(state),

@@ -93,7 +93,7 @@ func GetProgramWithPrompt(
 	return text, nil
 }
 
-func AddGeneratedCodeToTheGameTemplate(txt string, language string) (string, error) {
+func AddGeneratedCodeToTheGameTemplate(generatedProg string, language string) (string, error) {
 	mainTemplate := ""
 	switch language {
 	case rules.LangGo:
@@ -109,13 +109,8 @@ func AddGeneratedCodeToTheGameTemplate(txt string, language string) (string, err
 	}
 
 	strContent := string(tfile)
-	getTagCount := strings.Count(strContent, "<generated></generated>")
-	if getTagCount == 0 || getTagCount > 1 {
-		return "", fmt.Errorf("no or too many <generated> tags found")
-	}
-
 	// Replace <generated> with provided text
-	template := strings.Replace(strContent, "<generated></generated>", txt, 1)
+	template := strContent + generatedProg
 	return template, nil
 }
 
