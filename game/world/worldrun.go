@@ -7,20 +7,20 @@ import (
 )
 
 type ActionLog struct {
-	Turn        int        `json:"turn,omitempty"`
-	UnitID      int        `json:"unit_id"`
-	UnitActions UnitAction `json:"unit_action"`
-	Errors      []string   `json:"errors"`
-	// TODO: fill units after
-	UnitsAfter []Unit `json:"units,omitempty"`
+	Turn       int        `json:"turn,omitempty"`
+	UnitID     int        `json:"unit_id"`
+	UnitAction UnitAction `json:"unit_action"`
+	Errors     []string   `json:"errors"`
+	UnitsAfter []Unit     `json:"units_after,omitempty"`
 }
 
 type Result struct {
-	Turns       []ActionLog `json:"turns"`
-	Winner      int         `json:"winner"`
-	InitUnits   []*Unit     `json:"init_units"`
-	TeamOneLogs string      `json:"team_one_logs"`
-	TeamTwoLogs string      `json:"team_two_logs"`
+	Turns         []ActionLog          `json:"turns"`
+	Winner        int                  `json:"winner"`
+	InitUnits     []*Unit              `json:"init_units"`
+	UnitActionMap map[string]ActionMap `json:"unit_action_map"`
+	TeamOneLogs   string               `json:"team_one_logs"`
+	TeamTwoLogs   string               `json:"team_two_logs"`
 }
 
 func (r Result) NewActionLog(turn int, unitID int) ActionLog {
@@ -28,7 +28,6 @@ func (r Result) NewActionLog(turn int, unitID int) ActionLog {
 		Turn:   turn,
 		UnitID: unitID,
 	}
-	r.Turns = append(r.Turns, turnLog)
 	return turnLog
 }
 
@@ -55,8 +54,9 @@ func RunGame(
 		gameState.Units, func(item *Unit, _ int) bool { return item.Team == TeamB },
 	)
 	result := Result{
-		Winner:    Draw,
-		InitUnits: gameState.Units,
+		Winner:        Draw,
+		InitUnits:     gameState.Units,
+		UnitActionMap: gameState.UnitActionMap,
 	}
 
 	for turn := range maxTurns {
@@ -87,11 +87,14 @@ func RunGame(
 					actionLog.Errors = append(actionLog.Errors, actionErr.Error())
 					continue
 				}
-				err := gameState.UpdateGameState(unit, act, prevAction)
+				updatedUnits, err := gameState.UpdateGameState(unit, act, prevAction)
 				if err != nil {
 					actionLog.Errors = append(actionLog.Errors, err.Error())
 					log.Println(err)
 				}
+				actionLog.UnitAction = act
+				actionLog.UnitsAfter = gameState.GetUnitsByIDs(updatedUnits)
+				result.Turns = append(result.Turns, actionLog)
 				prevAction = act.Action
 			}
 		}

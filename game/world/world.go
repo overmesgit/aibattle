@@ -19,6 +19,7 @@ type GameState struct {
 	Width         int                  `json:"width"`
 	Height        int                  `json:"height"`
 	UnitActionMap map[string]ActionMap `json:"unit_action_map"`
+	IDToUnit      map[int]*Unit
 }
 
 func (gameState *GameState) RemoveDeadUnits() {
@@ -82,12 +83,19 @@ func GetInitialGameState() GameState {
 		},
 	)
 
+	unitIDtoUnit := lo.KeyBy(
+		units, func(item *Unit) int {
+			return item.ID
+		},
+	)
+
 	return GameState{
 		Turn:          0,
 		Units:         units,
 		Width:         20,
 		Height:        20,
 		UnitActionMap: UnitActionMap,
+		IDToUnit:      unitIDtoUnit,
 	}
 }
 
@@ -118,6 +126,18 @@ func (gameState *GameState) CopyUnits() []Unit {
 		res = append(res, copyUnit)
 	}
 	return res
+}
+
+func (gameState *GameState) GetUnitsByIDs(ids []int) []Unit {
+	return lo.Map(
+		ids, func(id int, index int) Unit {
+			unit := gameState.IDToUnit[id]
+			if unit == nil {
+				return Unit{}
+			}
+			return *unit
+		},
+	)
 }
 
 func CalculateDistance(pos1, pos2 Position) float64 {

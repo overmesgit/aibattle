@@ -9,38 +9,28 @@ import (
 
 func (gameState *GameState) UpdateGameState(
 	unit *Unit, action UnitAction, prevAction Action,
-) error {
+) ([]int, error) {
 	if action.Action == "" {
-		return errors.New("empty action")
+		return nil, errors.New("empty action")
 	}
 	if ifDoubleMove(prevAction, action.Action) {
-		return errors.New("same type of actions as first action")
+		return nil, errors.New("same type of actions as first action")
 	}
 	if !unit.IsAlive() {
-		return errors.New(fmt.Sprintf("unit %d is dead", unit.ID))
+		return nil, errors.New(fmt.Sprintf("unit %d is dead", unit.ID))
 	}
 	switch action.Action {
 	case HOLD:
-		return nil
+		return nil, nil
 	case MOVE:
-		err := gameState.MoveUnit(unit, action.Target)
-		if err != nil {
-			return err
-		}
+		return gameState.MoveUnit(unit, action.Target)
 	case ATTACK1:
-		err := gameState.AttackUnit(unit, action.Target)
-		if err != nil {
-			return err
-		}
+		return gameState.AttackUnit(unit, action.Target)
 	case SKILL1:
-		err := gameState.UseSkill(unit, action.Target)
-		if err != nil {
-			return err
-		}
+		return gameState.UseSkill(unit, action.Target)
 	default:
-		return errors.New(fmt.Sprintf("Unknown action %s", action.Action))
+		return nil, errors.New(fmt.Sprintf("Unknown action %s", action.Action))
 	}
-	return nil
 }
 
 func ifDoubleMove(prevAction Action, nextAction Action) bool {

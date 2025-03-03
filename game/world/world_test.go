@@ -15,6 +15,7 @@ func TestGameStateBasics(t *testing.T) {
 		Height:        20,
 		Units:         state.Units,
 		UnitActionMap: state.UnitActionMap,
+		IDToUnit:      state.IDToUnit,
 	}
 	assert.Equal(t, expectedState, state)
 }
@@ -58,27 +59,31 @@ func TestMoveUnit(t *testing.T) {
 
 	// Test valid move
 	target := &Position{X: originalPos.X + 1, Y: originalPos.Y + 1}
-	err := state.MoveUnit(unit, target)
+	affectedUnits, err := state.MoveUnit(unit, target)
 	assert.NoError(t, err)
 	assert.Equal(t, *target, unit.Position)
+	assert.Equal(t, []int{unit.ID}, affectedUnits)
 
 	// Test move out of range
 	target = &Position{X: originalPos.X + 10, Y: originalPos.Y + 10}
-	err = state.MoveUnit(unit, target)
+	affectedUnits, err = state.MoveUnit(unit, target)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "out of moving range")
+	assert.Nil(t, affectedUnits)
 
 	// Test move out of map
 	target = &Position{X: -1, Y: -1}
-	err = state.MoveUnit(unit, target)
+	affectedUnits, err = state.MoveUnit(unit, target)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "out of map range")
+	assert.Nil(t, affectedUnits)
 
 	// Test move to occupied position
 	occupiedPos := &Position{X: state.Units[2].Position.X, Y: state.Units[2].Position.Y}
-	err = state.MoveUnit(unit, occupiedPos)
+	affectedUnits, err = state.MoveUnit(unit, occupiedPos)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "target is occupied")
+	assert.Nil(t, affectedUnits)
 }
 
 func TestAttackUnit(t *testing.T) {
@@ -96,21 +101,24 @@ func TestAttackUnit(t *testing.T) {
 	initialHP := targetUnit.HP
 
 	// Test valid attack
-	err := state.AttackUnit(*attacker, &targetUnit.Position)
+	affectedUnits, err := state.AttackUnit(attacker, &targetUnit.Position)
 	assert.NoError(t, err)
 	assert.Less(t, targetUnit.HP, initialHP)
+	assert.Equal(t, []int{targetUnit.ID}, affectedUnits)
 
 	// Test attack out of range
 	attacker.Position = Position{X: 1, Y: 1}
 	targetUnit.Position = Position{X: 10, Y: 10}
-	err = state.AttackUnit(*attacker, &targetUnit.Position)
+	affectedUnits, err = state.AttackUnit(attacker, &targetUnit.Position)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "out of range")
+	assert.Nil(t, affectedUnits)
 
 	// Test attack non-existent unit
 	emptyPos := &Position{X: 15, Y: 15}
-	err = state.AttackUnit(*attacker, emptyPos)
+	affectedUnits, err = state.AttackUnit(attacker, emptyPos)
 	assert.Error(t, err)
+	assert.Nil(t, affectedUnits)
 }
 
 func TestUseSkill(t *testing.T) {
@@ -141,9 +149,10 @@ func TestUseSkill(t *testing.T) {
 
 	// Test healing skill
 	initialHP := teammate.HP
-	err := state.UseSkill(*healer, &teammate.Position)
+	affectedUnits, err := state.UseSkill(healer, &teammate.Position)
 	assert.NoError(t, err)
 	assert.Greater(t, teammate.HP, initialHP)
+	assert.Equal(t, []int{teammate.ID}, affectedUnits)
 
 	// Find mage
 	var mage *Unit
@@ -167,16 +176,18 @@ func TestUseSkill(t *testing.T) {
 
 	// Test damage skill
 	initialHP = enemy.HP
-	err = state.UseSkill(*mage, &enemy.Position)
+	affectedUnits, err = state.UseSkill(mage, &enemy.Position)
 	assert.NoError(t, err)
 	assert.Less(t, enemy.HP, initialHP)
+	assert.Equal(t, []int{enemy.ID}, affectedUnits)
 
 	// Test skill out of range
 	mage.Position = Position{X: 1, Y: 1}
 	enemy.Position = Position{X: 15, Y: 15}
-	err = state.UseSkill(*mage, &enemy.Position)
+	affectedUnits, err = state.UseSkill(mage, &enemy.Position)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "out of range")
+	assert.Nil(t, affectedUnits)
 }
 
 func TestUpdateGameState(t *testing.T) {
@@ -184,21 +195,29 @@ func TestUpdateGameState(t *testing.T) {
 	unit := *state.Units[0]
 
 	// Test HOLD action
-	err := state.UpdateGameState(unit, UnitAction{Action: HOLD, Target: nil}, "")
+	affectedUnits, err := state.UpdateGameState(&unit, UnitAction{Action: HOLD, Target: nil}, "")
 	assert.NoError(t, err)
+	assert.Nil(t, affectedUnits)
 
 	// Test MOVE action
 	target := &Position{X: unit.Position.X + 1, Y: unit.Position.Y + 1}
-	err = state.UpdateGameState(unit, UnitAction{Action: MOVE, Target: target}, "")
+	affectedUnits, err = state.UpdateGameState(&unit, UnitAction{Action: MOVE, Target: target}, "")
 	assert.NoError(t, err)
+	assert.Equal(t, []int{unit.ID}, affectedUnits)
 
 	// Test multiple MOVE actions (should fail)
-	err = state.UpdateGameState(unit, UnitAction{Action: MOVE, Target: target}, MOVE)
+	affectedUnits, err = state.UpdateGameState(
+		&unit, UnitAction{Action: MOVE, Target: target}, MOVE,
+	)
 	assert.Error(t, err)
+	assert.Nil(t, affectedUnits)
 
 	// Test invalid action
-	err = state.UpdateGameState(unit, UnitAction{Action: "INVALID", Target: target}, "")
+	affectedUnits, err = state.UpdateGameState(
+		&unit, UnitAction{Action: "INVALID", Target: target}, "",
+	)
 	assert.Error(t, err)
+	assert.Nil(t, affectedUnits)
 }
 
 func TestCheckWinningTeam(t *testing.T) {

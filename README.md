@@ -1,10 +1,11 @@
 ## TODO
 
+* store updated units to battle viewer
+* update game viewer
 * send previous action to the function
 * implement auto play button
 * deploy only gcp run
 * time limits for goja
-* catch exceptions in goja
 
 ## Ideas
 

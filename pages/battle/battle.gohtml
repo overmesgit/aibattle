@@ -10,7 +10,7 @@
 
       const gameData = JSON.parse({{.Output}});
       console.log(gameData);
-      const gameTurns = gameData.turns;
+      const turns = gameData.turns;
       const initUnits = gameData.init_units;
       const CELL_SIZE = 32;
       const GRID_SIZE = 20;
@@ -36,27 +36,26 @@
           2: "TeamB",
       };
 
+      // Create action name mapping from unit_action_map
+      const createActionMap = () => {
+          const actionMap = {};
 
-      const createSkillMap = (initUnits) => {
-          const skillMap = {};
+          if (gameData.unit_action_map) {
+              // Process each unit type in the action map
+              Object.entries(gameData.unit_action_map).forEach(([unitType, actions]) => {
+                  actionMap[unitType] = {};
 
-          initUnits.forEach(unit => {
-              if (!skillMap[unit.type]) {
-                  skillMap[unit.type] = {};
-
-                  // Map all actions from the unit
-                  Object.entries(unit.actions).forEach(([actionKey, actionValue]) => {
-                      if (actionKey.startsWith("skill")) {
-                          const skillKey = actionKey.replaceAll("_", "");
-                          skillMap[unit.type][skillKey] = actionValue.name;
-                      }
+                  // Map each action to its name
+                  Object.entries(actions).forEach(([actionKey, actionDetails]) => {
+                      actionMap[unitType][actionKey] = actionDetails.name || actionKey;
                   });
-              }
-          });
+              });
+          }
 
-          return skillMap;
+          return actionMap;
       };
-      const skillMap = createSkillMap(initUnits);
+
+      const actionMap = createActionMap();
 
       const UnitIcon = ({unit}) => {
           return html`
@@ -67,7 +66,7 @@
       };
 
       const ActionMarker = ({action, unit}) => {
-          if (!action.target || action.action === "hold") return null;
+          if (!action.target || action.action === "hold" || action.action === "move") return null;
 
           const color = "bg-grey-300";
           const symbol = action.action.includes('attack') ? '⚔️' :
@@ -117,169 +116,86 @@
           </div>
       `;
 
-      const BattleGrid = ({currentState, currentAction}) => {
-          // Create deep copy of units to track positions
-          const units = JSON.parse(JSON.stringify(currentState.units || []));
-          const idToUnit = new Map(units.map(unit => [unit.id, unit]));
+      const BattleGrid = ({currentActionIndex}) => {
+          // Track units and their positions
+          let units = [];
 
-          // Get actions up to current and apply position updates
-          const relevantActions = currentState.actions?.slice(0, currentAction + 1) || [];
-          relevantActions.forEach(action => {
-              action.unit_action.forEach(act => {
-                  if (act?.target && act.action.includes('move') && !act.error) {
-                      const unit = idToUnit.get(action.unit_id);
-                      if (unit) {
-                          unit.position.x = act.target.x;
-                          unit.position.y = act.target.y;
-                      }
-                  }
-              });
-          });
+          // Create a map of unit IDs to the most recent unit state
+          const unitMap = new Map();
+
+          // Process all turns up to the current action index to get final unit positions
+          for (let i = 0; i <= currentActionIndex && i < turns.length; i++) {
+              const turn = turns[i];
+
+              // If units_after is available, update the unit state
+              if (turn.units_after) {
+                  turn.units_after.forEach(unit => {
+                      unitMap.set(unit.id, unit);
+                  });
+              }
+          }
+
+          // Convert the map to an array for rendering
+          units = Array.from(unitMap.values());
+
+          // Get the current turn for display
+          const currentAction = currentActionIndex < turns.length ? turns[currentActionIndex] : null;
+
           const unitStyle = (unit) => css`
           left: ${getOffset(unit.position.x, 1)}px;
           top: ${getOffset(unit.position.y, 1)}px;`;
-
 
           return html`
               <div>
                   <div class="relative">
                       <${GridCoordinates}/>
                       <${GridLines}/>
-                      ${currentState.actions?.map((action, index) =>
-                              action.unit_action.map((act, actIndex) =>
-                                      act && html`
-                                          <${ActionMarker} key=${`action-${index}-${actIndex}`}
-                                                           action=${act}
-                                                           unit=${idToUnit.get(action.unit_id)}/>`
-                              )
-                      )}
+                      ${currentAction && currentAction.unit_action && html`
+                          <${ActionMarker}
+                              action=${currentAction.unit_action}
+                              unit=${unitMap.get(currentAction.unit_id)}/>
+                      `}
                       ${units.map((unit) =>
-                                      unit.hp > 0 && html`
-                                          <div key=${unit.id} class="absolute ${unitStyle(unit)}">
-                                              <${UnitIcon} unit=${unit}/>
-                                          </div>
-                                      `
+                          unit.hp > 0 && html`
+                              <div key=${unit.id} class="absolute ${unitStyle(unit)}">
+                                  <${UnitIcon} unit=${unit}/>
+                              </div>
+                          `
                       )}
                   </div>
               </div>
           `;
       };
 
-      const Controls = ({currentTurn, gameTurns, setCurrentTurn}) => html`
+      const ActionControls = ({currentActionIndex, setCurrentActionIndex}) => html`
           <div class="bg-white rounded-lg shadow p-4 mb-4">
               <h2 class="text-lg font-bold mb-2 {{if eq .MyTeam "teamA"}}text-blue-500{{else}}text-red-500{{end}}">My {{.MyTeam}}</h2>
-              <h2 class="text-lg font-bold mb-2">Turn ${currentTurn} </h2>
+              <h2 class="text-lg font-bold mb-2">
+                  ${currentActionIndex < turns.length && turns[currentActionIndex].turn ?
+                      `Turn ${turns[currentActionIndex].turn}` :
+                      "Initial Setup"}
+              </h2>
+              <h2 class="text-lg font-bold mb-2">Action ${currentActionIndex + 1} of ${turns.length}</h2>
               <input
                       type="range"
                       min="0"
-                      max=${gameTurns.length - 1}
-                      value=${currentTurn}
-                      onChange=${(e) => setCurrentTurn(Number(e.target.value))}
+                      max=${turns.length - 1}
+                      value=${currentActionIndex}
+                      onChange=${(e) => setCurrentActionIndex(Number(e.target.value))}
                       class="w-full mb-2"
               />
               <div class="flex justify-between">
                   <button
-                          onClick=${() => setCurrentTurn(t => Math.max(0, t - 1))}
+                          onClick=${() => setCurrentActionIndex(a => Math.max(0, a - 1))}
                           class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
-                          disabled=${currentTurn === 0}
-                  >
-                      Previous
-                  </button>
-                  <button
-                          onClick=${() => setCurrentTurn(t => Math.min(gameTurns.length - 1, t + 1))}
-                          class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
-                          disabled=${currentTurn === gameTurns.length - 1}
-                  >
-                      Next
-                  </button>
-              </div>
-          </div>
-      `;
-
-      const ActionLog = ({currentState, currentAction}) => {
-          let wonTeam = null;
-          if (currentState.type?.startsWith("Team")) {
-              wonTeam = `${currentState.type} WON!`;
-          }
-          return html`
-              <div class="bg-white rounded-lg shadow p-4 mb-4">
-                  <h2 class="text-lg font-bold mb-2">Action Log</h2>
-                  <div class="h-82 overflow-y-auto w-96">
-                      ${wonTeam}
-                      ${currentState.actions?.map((action, index) => html`
-                          <div key=${index} class="m-2">
-                              ${action.unit_action.map((act, actIndex) => {
-                                  if (!act) return null;
-                                  const targetUnit = currentState.units?.find(
-                                          u => u.position.x === act.target?.x && u.position.y === act.target?.y
-                                  );
-                                  const unit = currentState.units.find((u) => u.id === action.unit_id);
-                                  const backGround = unit?.team === 1 ? "bg-blue-300" : "bg-red-300";
-                                  return html`
-                                      <div key=${actIndex}
-                                           class="text-sm p-1 ${backGround} ${index === currentAction ? 'ring-4 ring-yellow-500 ring-offset-0' : ''}">
-                                          <p>
-                                              ${unitTeam[unit?.team]} Unit ${unit?.type}:
-                                              ${skillMap[unit?.type][act.action] || act.action}
-                                              ${act.target ? ` to (${act.target.y}, ${act.target.x})
-                                                  ${targetUnit ? ` [${targetUnit.type}]` : ''
-                                              }` : ''}
-                                          </p>
-                                          ${act.error ? html`<p class="bg-red-500 p-1">
-                                              ${act.error}</p>` : ''}
-                                      </div>
-                                  `;
-                              })}
-                          </div>
-                      `)}
-                  </div>
-              </div>
-          `;
-      }
-
-      const UnitStatus = ({currentState}) => {
-          return html`
-              <div class="bg-white rounded-lg shadow p-4">
-                  <h2 class="text-lg font-bold mb-2">Unit Status</h2>
-                  <div class="space-y-1">
-                      ${currentState.units?.map((unit) => html`
-                          <div
-                                  key=${unit.id}
-                                  class=${`text-sm p-1 ${unit.hp <= 0 ? 'text-gray-400' : ''}
-                                  ${unit?.team === 1 ? "bg-blue-300" : "bg-red-300"}`}
-                          >
-                              ${unitTeam[unit?.team]} ${unit.type}: ${Math.max(0, unit.hp)}
-                                  /${unit.maxHp} HP
-                          </div>
-                      `)}
-                  </div>
-              </div>
-          `
-      };
-
-      const ActionControls = ({currentAction, totalActions, setCurrentAction}) => html`
-          <div class="bg-white rounded-lg shadow p-4 mb-4">
-              <h2 class="text-lg font-bold mb-2">Action ${currentAction + 1} of ${totalActions}</h2>
-              <input
-                      type="range"
-                      min="0"
-                      max=${Math.max(0, totalActions - 1)}
-                      value=${currentAction}
-                      onChange=${(e) => setCurrentAction(Number(e.target.value))}
-                      class="w-full mb-2"
-              />
-              <div class="flex justify-between">
-                  <button
-                          onClick=${() => setCurrentAction(a => Math.max(0, a - 1))}
-                          class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
-                          disabled=${currentAction === 0}
+                          disabled=${currentActionIndex === 0}
                   >
                       Previous Action
                   </button>
                   <button
-                          onClick=${() => setCurrentAction(a => Math.min(totalActions - 1, a + 1))}
+                          onClick=${() => setCurrentActionIndex(a => Math.min(turns.length - 1, a + 1))}
                           class="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-400"
-                          disabled=${currentAction === totalActions - 1}
+                          disabled=${currentActionIndex === turns.length - 1}
                   >
                       Next Action
                   </button>
@@ -287,36 +203,102 @@
           </div>
       `;
 
+      const ActionLog = ({currentActionIndex}) => {
+          return html`
+              <div class="bg-white rounded-lg shadow p-4 mb-4">
+                  <h2 class="text-lg font-bold mb-2">Action Log</h2>
+                  <div class="h-82 overflow-y-auto w-96">
+                      ${turns.map((turn, index) => {
+                          if (!turn.unit_action) return null;
+
+                          const unit = turn.units_after?.find(u => u.id === turn.unit_id);
+                          const backGround = unit?.team === 1 ? "bg-blue-300" : "bg-red-300";
+
+                          const targetUnit = turn.units_after?.find(u =>
+                              u.position.x === turn.unit_action.target?.x &&
+                              u.position.y === turn.unit_action.target?.y
+                          );
+
+                          // Get the action name from the action map
+                          const actionName = unit ?
+                              (actionMap[unit.type]?.[turn.unit_action.action] || turn.unit_action.action) :
+                              turn.unit_action.action;
+
+                          return html`
+                              <div key=${index} class="m-2">
+                                  <div
+                                      class="text-sm p-1 ${backGround} ${index === currentActionIndex ? 'ring-4 ring-yellow-500 ring-offset-0' : ''}">
+                                      ${turn.turn ? `Turn ${turn.turn}: ` : ''}
+                                      ${unit ? `${unitTeam[unit.team]} Unit ${unit.type}: ` : ''}
+                                      ${actionName}
+                                      ${turn.unit_action.target ? ` to (${turn.unit_action.target.y}, ${turn.unit_action.target.x})
+                                          ${targetUnit ? ` [${targetUnit.type}]` : ''}
+                                      ` : ''}
+                                      ${turn.errors ? html`<p class="bg-red-500 p-1">${turn.errors}</p>` : ''}
+                                  </div>
+                              </div>
+                          `;
+                      })}
+                  </div>
+              </div>
+          `;
+      }
+
+      const UnitStatus = ({currentActionIndex}) => {
+          // Determine the current state of all units at this action index
+          const unitMap = new Map();
+
+          // Process all turns up to the current action to get unit states
+          for (let i = 0; i <= currentActionIndex && i < turns.length; i++) {
+              const turn = turns[i];
+              if (turn.units_after) {
+                  turn.units_after.forEach(unit => {
+                      unitMap.set(unit.id, unit);
+                  });
+              }
+          }
+
+          const units = Array.from(unitMap.values());
+
+          return html`
+              <div class="bg-white rounded-lg shadow p-4">
+                  <h2 class="text-lg font-bold mb-2">Unit Status</h2>
+                  <div class="space-y-1">
+                      ${units.map((unit) => html`
+                          <div
+                              key=${unit.id}
+                              class=${`text-sm p-1 ${unit.hp <= 0 ? 'text-gray-400' : ''}
+                              ${unit?.team === 1 ? "bg-blue-300" : "bg-red-300"}`}
+                          >
+                              ${unitTeam[unit?.team]} ${unit.type}: ${Math.max(0, unit.hp)}
+                                  /${unit.maxHp} HP
+                          </div>
+                      `)}
+                  </div>
+              </div>
+          `;
+      };
+
       const BattleViewer = () => {
-          const [currentTurn, setCurrentTurn] = useState(0);
-          const [currentAction, setCurrentAction] = useState(0);
-
-          const currentState = gameTurns[currentTurn] || {units: [], actions: []};
-          const totalActions = currentState.actions?.length || 0;
-
-          const handleTurnChange = (newTurn) => {
-              setCurrentTurn(newTurn);
-              setCurrentAction(0);
-          };
+          const [currentActionIndex, setCurrentActionIndex] = useState(0);
 
           return html`
               <div class="flex justify-center m-4 bg-gray-50">
                   <div class="bg-gray-50 p-4 ${gridStyle}">
-                      <${BattleGrid} currentState=${currentState} currentAction=${currentAction}/>
+                      <${BattleGrid} currentActionIndex=${currentActionIndex}/>
                   </div>
                   <div class="p-4 bg-gray-50">
-                      ${gameTurns.length > 0 && html`
-                          <${Controls} currentTurn=${currentTurn} gameTurns=${gameTurns}
-                                       setCurrentTurn=${handleTurnChange}/>
-                              <${ActionControls} currentAction=${currentAction}
-                                                 totalActions=${totalActions}
-                                                 setCurrentAction=${setCurrentAction}/>
+                      ${turns.length > 0 && html`
+                          <${ActionControls}
+                              currentActionIndex=${currentActionIndex}
+                              setCurrentActionIndex=${setCurrentActionIndex}
+                          />
                       `}
-                      <${ActionLog} currentState=${currentState} currentAction=${currentAction}/>
+                      <${ActionLog} currentActionIndex=${currentActionIndex}/>
                   </div>
 
                   <div class="p-4 bg-gray-50">
-                      <${UnitStatus} currentState=${currentState}/>
+                      <${UnitStatus} currentActionIndex=${currentActionIndex}/>
                   </div>
               </div>
           `;

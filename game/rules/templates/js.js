@@ -177,8 +177,6 @@ function MinHeap() {
 }
 
 function aStar(gameState, start, goal) {
-  // Binary Heap priority queue
-
   function posKey(p) {
     return p.x + "," + p.y;
   }

@@ -6,23 +6,23 @@ import (
 	"github.com/samber/lo"
 )
 
-func (gameState *GameState) UseSkill(unit *Unit, target *Position) error {
+func (gameState *GameState) UseSkill(unit *Unit, target *Position) ([]int, error) {
 	if target == nil {
-		return errors.New("target is nil")
+		return nil, errors.New("target is nil")
 	}
 	skill := UnitActionMap[unit.Type].Skill1
 	if skill == nil {
-		return errors.New("skill is not available")
+		return nil, errors.New("skill is not available")
 	}
 
 	distance := CalculateDistance(unit.Position, *target)
 	if distance > float64(skill.Range) {
-		return errors.New("target is out of range")
+		return nil, errors.New("target is out of range")
 	}
 
 	targetUnit, err := gameState.FindUnit(*target)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if skill.Effect == HEAL {
@@ -31,6 +31,6 @@ func (gameState *GameState) UseSkill(unit *Unit, target *Position) error {
 	if skill.Effect == RANGE {
 		targetUnit.HP -= skill.Value
 	}
-	return nil
+	return []int{targetUnit.ID}, nil
 
 }
