@@ -1,7 +1,6 @@
 package main
 
 import (
-	"aibattle/battler"
 	_ "aibattle/migrations"
 	"aibattle/pages"
 	"aibattle/pages/auth"
@@ -61,13 +60,8 @@ func main() {
 				se.Router.POST("/prompt/{id}/activate", prompt.ActivatePrompt(app)),
 				se.Router.GET("/battle", battle.List(app, templ)),
 				se.Router.GET("/battle/{id}", battle.Detailed(app, templ)),
+				se.Router.POST("/battle/run", battle.RunBattle(app, templ)),
 			)
-
-			go func() {
-				if os.Getenv("DISABLE_BATTLE") != "true" {
-					battler.RunBattleTask(app)
-				}
-			}()
 
 			go func() {
 				prompt.ProcessPrompts(app)
