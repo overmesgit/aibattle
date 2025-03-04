@@ -17,7 +17,7 @@ type ActionLog struct {
 type Result struct {
 	Turns         []ActionLog          `json:"turns"`
 	Winner        int                  `json:"winner"`
-	InitUnits     []*Unit              `json:"init_units"`
+	InitUnits     []Unit               `json:"init_units"`
 	UnitActionMap map[string]ActionMap `json:"unit_action_map"`
 	TeamOneLogs   string               `json:"team_one_logs"`
 	TeamTwoLogs   string               `json:"team_two_logs"`
@@ -55,7 +55,7 @@ func RunGame(
 	)
 	result := Result{
 		Winner:        Draw,
-		InitUnits:     gameState.Units,
+		InitUnits:     gameState.CopyUnits(),
 		UnitActionMap: gameState.UnitActionMap,
 	}
 
