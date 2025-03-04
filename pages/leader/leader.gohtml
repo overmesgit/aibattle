@@ -11,14 +11,12 @@
           <li class="flex justify-between py-2 font-bold border-b">
             <span class="w-1/4">Rank</span>
             <span class="w-1/2">Player</span>
-            <span class="w-1/2">Language</span>
             <span class="w-1/4 text-right">Score</span>
           </li>
             {{range $index, $score := .Scores}}
               <li class="flex justify-between p-2 border-b {{if and $.User (eq $.User.Id $score.UserID)}}bg-blue-300{{end}}">
                 <span class="w-1/4">{{add $index 1}}</span>
                 <span class="w-1/2">{{$score.Username}}</span>
-                <span class="w-1/2">{{$score.Language}}</span>
                 <span class="w-1/4 text-right">{{printf "%.2f" $score.Score}}</span>
               </li>
             {{end}}
