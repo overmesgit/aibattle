@@ -55,7 +55,7 @@ func SignUp(app *pocketbase.PocketBase, templ *template.Template) func(e *core.R
 				return redirectWithCookie(e, newUser)
 			}
 		}
-		return pages.Render(e, templ, "signup.gohtml", data)
+		return pages.Render(e, templ, "auth/signup.gohtml", data)
 	}
 }
 

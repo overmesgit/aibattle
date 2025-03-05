@@ -88,6 +88,6 @@ func List(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Req
 			User:   e.Auth,
 		}
 
-		return pages.Render(e, templ, "leader.gohtml", data)
+		return pages.Render(e, templ, "leader/leader.gohtml", data)
 	}
 }

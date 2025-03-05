@@ -40,7 +40,7 @@ func Login(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Re
 				return e.Redirect(http.StatusFound, "/")
 			}
 		}
-		return pages.Render(e, templ, "login.gohtml", data)
+		return pages.Render(e, templ, "auth/login.gohtml", data)
 	}
 }
 

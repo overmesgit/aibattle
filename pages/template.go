@@ -1,54 +1,59 @@
 package pages
 
 import (
+	"embed"
 	"fmt"
 	"github.com/Masterminds/sprig"
 	"github.com/pocketbase/pocketbase/core"
 	"html/template"
-	"os"
 	"path/filepath"
-	"runtime"
-	"strings"
 )
 
+//go:embed auth/*.gohtml battle/*.gohtml index/*.gohtml layout/*.gohtml leader/*.gohtml prompt/*.gohtml
+var templates embed.FS
+
 func Render(e *core.RequestEvent, templ *template.Template, filename string, data any) error {
-	_, file, _, _ := runtime.Caller(1)
 	clone, cloneErr := templ.Clone()
 	if cloneErr != nil {
 		return cloneErr
 	}
-	dir := filepath.Dir(file)
-	splitPath := strings.Split(dir, "aibattle/")
-	if len(splitPath) < 2 {
-		return fmt.Errorf("invalid dir for template: %s", dir)
+
+	// Read template content from embedded filesystem
+	content, err := templates.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("failed to read template %s: %v", filename, err)
 	}
-	absolute := splitPath[1]
-	_, parseErr := clone.ParseFiles(filepath.Join(absolute, filename))
+
+	// Parse the template content
+	temp, parseErr := clone.Parse(string(content))
 	if parseErr != nil {
-		return parseErr
+		return fmt.Errorf("parse error %w", parseErr)
 	}
-	return clone.ExecuteTemplate(e.Response, filename, data)
+
+	return temp.Execute(e.Response, data)
 }
 
 func ParseTemplates() (*template.Template, error) {
 	templ := template.New("").Funcs(sprig.FuncMap())
 
-	// Parse all .html files in templates directory
-	err := filepath.Walk(
-		"pages/layout", func(path string, info os.FileInfo, err error) error {
+	// Parse layout templates from embedded filesystem
+	layoutFiles, err := templates.ReadDir("layout")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range layoutFiles {
+		if filepath.Ext(file.Name()) == ".gohtml" {
+			content, err := templates.ReadFile(filepath.Join("layout", file.Name()))
 			if err != nil {
-				return err
+				return nil, err
 			}
-
-			if !info.IsDir() && filepath.Ext(path) == ".gohtml" {
-				_, err = templ.ParseFiles(path)
-				if err != nil {
-					return err
-				}
+			templ, err = templ.New(file.Name()).Parse(string(content))
+			if err != nil {
+				return nil, err
 			}
-			return nil
-		},
-	)
+		}
+	}
 
-	return templ, err
+	return templ, nil
 }

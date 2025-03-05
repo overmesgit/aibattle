@@ -80,7 +80,7 @@ func Detailed(
 			MyTeam:   battleResult.GetString("team"),
 			Opponent: opponent.GetString("name"),
 		}
-		return pages.Render(e, templ, "battle.gohtml", data)
+		return pages.Render(e, templ, "battle/battle.gohtml", data)
 	}
 }
 
@@ -118,7 +118,7 @@ func defaultList(
 		Battles: battleViews,
 		Error:   error,
 	}
-	return pages.Render(e, templ, "battle_list.gohtml", data)
+	return pages.Render(e, templ, "battle/battle_list.gohtml", data)
 }
 
 func getUserBattles(userID string, app *pocketbase.PocketBase) ([]ListView, error) {

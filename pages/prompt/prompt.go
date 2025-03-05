@@ -49,7 +49,7 @@ func NewPromptForm(
 		if dataErr != nil {
 			return dataErr
 		}
-		return pages.Render(e, templ, "prompt.gohtml", data)
+		return pages.Render(e, templ, "prompt/prompt.gohtml", data)
 	}
 }
 
@@ -67,7 +67,7 @@ func CreatePrompt(
 			return promptErr
 		}
 		if validationErr != nil {
-			return pages.Render(e, templ, "prompt.gohtml", data)
+			return pages.Render(e, templ, "prompt/prompt.gohtml", data)
 		}
 		return e.Redirect(http.StatusFound, "/prompt/"+newPrompt.Id)
 	}
@@ -82,7 +82,7 @@ func DetailedPrompt(
 		if dataErr != nil {
 			return dataErr
 		}
-		return pages.Render(e, templ, "prompt.gohtml", data)
+		return pages.Render(e, templ, "prompt/prompt.gohtml", data)
 	}
 }
 
@@ -110,7 +110,7 @@ func UpdatePrompt(
 			data.Status = updatedPrompt.GetString("status")
 		}
 		data.Errors = validationErr
-		return pages.Render(e, templ, "prompt.gohtml", data)
+		return pages.Render(e, templ, "prompt/prompt.gohtml", data)
 	}
 }
 

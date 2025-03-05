@@ -17,15 +17,17 @@ func Index(app *pocketbase.PocketBase, templ *template.Template) func(e *core.Re
 		data := &Data{
 			User: e.Auth,
 		}
-		return pages.Render(e, templ, "index.gohtml", data)
+		return pages.Render(e, templ, "index/index.gohtml", data)
 	}
 }
 
-func Landing(app *pocketbase.PocketBase, templ *template.Template) func(e *core.RequestEvent) error {
+func Landing(
+	app *pocketbase.PocketBase, templ *template.Template,
+) func(e *core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 		data := &Data{
 			User: e.Auth,
 		}
-		return pages.Render(e, templ, "landing.gohtml", data)
+		return pages.Render(e, templ, "index/landing.gohtml", data)
 	}
 }
