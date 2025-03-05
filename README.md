@@ -1,24 +1,17 @@
 ## TODO
 
-* store updated units to battle viewer
-* update game viewer
-* send previous action to the function
-* implement auto play button
 * deploy only gcp run
-* time limits for goja
+* remove old environment
 
 ## Ideas
 
+* send previous actions to the function
+* time limits for goja
 * new game view
 * mobile friendly
-* request time limit for getting next action
-* go lang template should use world objects directly
-* run at least one round to test a program
 * make internal page to check the status of the battle
 * cache go templates with env variable flag
-* better to catch errors in the container and return error.
 * battle time to local time
-* replace local image repo with gcp
 * add number of matches on leaderboard
 * program memory and cpu limits
 * match making depending on the score
@@ -31,7 +24,6 @@
 * pagination for battles
 * better goroutines
 * rebuild games if game rules were updated
-* write test for a game
 
 ## Share
 

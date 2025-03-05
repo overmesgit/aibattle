@@ -7,13 +7,12 @@ import (
 	"compress/gzip"
 	"errors"
 	"fmt"
+	"github.com/samber/lo"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/samber/lo"
 
 	"github.com/pocketbase/dbx"
 
@@ -123,9 +122,8 @@ func defaultList(
 }
 
 func getUserBattles(userID string, app *pocketbase.PocketBase) ([]ListView, error) {
-	battles := []*core.Record{}
+	var battles []*core.Record
 	err := app.RecordQuery("battle_result").
-		Join("LEFT JOIN", "users", dbx.NewExp("opponent = users.id")).
 		AndWhere(dbx.HashExp{"user": userID}).
 		OrderBy("created DESC").
 		Limit(100).
@@ -134,30 +132,45 @@ func getUserBattles(userID string, app *pocketbase.PocketBase) ([]ListView, erro
 		return nil, err
 	}
 
-	// Expand opponent relations to get names
-	expErr := app.ExpandRecords(battles, []string{"opponent"}, nil)
-	if len(expErr) > 0 {
-		return nil, lo.Values(expErr)[0]
+	userNames, nameErr := getUserNames(battles, app)
+	if nameErr != nil {
+		return nil, nameErr
 	}
 
-	battleViews := make([]ListView, len(battles))
-	for i, battle := range battles {
-		view := ListView{
-			ID:          battle.Id,
-			Date:        battle.GetDateTime("created").Time(),
-			ScoreChange: fmt.Sprintf("%+.f", battle.GetFloat("score_change")),
-			PromptID:    battle.GetString("prompt"),
-			Result:      battle.GetString("result"),
-		}
+	return lo.Map(
+		battles, func(b *core.Record, index int) ListView {
+			return ListView{
+				ID:          b.Id,
+				Date:        b.GetDateTime("created").Time(),
+				ScoreChange: fmt.Sprintf("%+.f", b.GetFloat("score_change")),
+				PromptID:    b.GetString("prompt"),
+				Result:      b.GetString("result"),
+				Opponent:    userNames[b.GetString("opponent")],
+			}
+		},
+	), nil
+}
 
-		// Get opponent name from expanded relation
-		if opponent := battle.ExpandedOne("opponent"); opponent != nil {
-			view.Opponent = opponent.GetString("name")
-		}
-
-		battleViews[i] = view
+func getUserNames(
+	battles []*core.Record, app *pocketbase.PocketBase,
+) (map[string]string, error) {
+	opponentIDs := lo.Uniq(
+		lo.Map(
+			battles, func(b *core.Record, index int) string {
+				return b.GetString("opponent")
+			},
+		),
+	)
+	opponents, err := app.FindRecordsByIds("users", opponentIDs)
+	if err != nil {
+		return nil, err
 	}
-	return battleViews, nil
+	userNames := lo.SliceToMap(
+		opponents, func(o *core.Record) (string, string) {
+			return o.Id, o.GetString("name")
+		},
+	)
+	return userNames, nil
 }
 
 // Store last battle time for each user
@@ -169,13 +182,9 @@ func RunBattle(
 	return func(e *core.RequestEvent) error {
 		// Check rate limit - allow only 1 battle per minute
 		userId := e.Auth.Id
-		if lastTime, exists := lastBattleTime[userId]; exists {
-			elapsed := time.Since(lastTime)
-			if elapsed < time.Minute {
-				remaining := time.Minute - elapsed
-				message := fmt.Sprintf("Please wait %d seconds before starting another battle.", int(remaining.Seconds()))
-				return defaultList(e, app, templ, message)
-			}
+		limitError := checkBattleLimit(userId)
+		if limitError != nil {
+			return defaultList(e, app, templ, limitError.Error())
 		}
 
 		// Find the active prompt for the current user
@@ -188,7 +197,10 @@ func RunBattle(
 		)
 		if err != nil {
 			if err.Error() == "sql: no rows in result set" {
-				return defaultList(e, app, templ, "You don't have an active prompt. Please activate a prompt before starting a battle.")
+				return defaultList(
+					e, app, templ,
+					"You don't have an active prompt. Please activate a prompt before starting a battle.",
+				)
 			}
 			return defaultList(e, app, templ, "Error finding active prompt: "+err.Error())
 		}
@@ -203,4 +215,17 @@ func RunBattle(
 
 		return e.Redirect(http.StatusFound, "/battle")
 	}
+}
+
+func checkBattleLimit(userId string) error {
+	if lastTime, exists := lastBattleTime[userId]; exists {
+		elapsed := time.Since(lastTime)
+		if elapsed < time.Minute {
+			remaining := time.Minute - elapsed
+			return fmt.Errorf(
+				"please wait %d seconds before starting another battle", int(remaining.Seconds()),
+			)
+		}
+	}
+	return nil
 }

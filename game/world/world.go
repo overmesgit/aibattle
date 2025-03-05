@@ -67,15 +67,15 @@ func GetInitialGameState() GameState {
 	}
 
 	// Team A starting positions
-	addUnit(NewWarrior(TeamA, Position{X: 1, Y: 1}))
-	addUnit(NewHealer(TeamA, Position{X: 2, Y: 1}))
-	addUnit(NewMage(TeamA, Position{X: 3, Y: 1}))
-	addUnit(NewRogue(TeamA, Position{X: 4, Y: 1}))
+	addUnit(NewWarrior(TeamA, Position{X: 4, Y: 1}))
+	addUnit(NewHealer(TeamA, Position{X: 3, Y: 1}))
+	addUnit(NewMage(TeamA, Position{X: 2, Y: 1}))
+	addUnit(NewRogue(TeamA, Position{X: 1, Y: 1}))
 
-	addUnit(NewWarrior(TeamB, Position{18, 18}))
-	addUnit(NewHealer(TeamB, Position{17, 18}))
-	addUnit(NewMage(TeamB, Position{16, 18}))
-	addUnit(NewRogue(TeamB, Position{X: 15, Y: 18}))
+	addUnit(NewWarrior(TeamB, Position{15, 18}))
+	addUnit(NewHealer(TeamB, Position{16, 18}))
+	addUnit(NewMage(TeamB, Position{17, 18}))
+	addUnit(NewRogue(TeamB, Position{X: 18, Y: 18}))
 
 	sort.Slice(
 		units, func(i, j int) bool {
