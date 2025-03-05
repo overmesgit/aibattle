@@ -7,6 +7,7 @@
 
 * send previous actions to the function
 * time limits for goja
+* run template test in goja
 * new game view
 * mobile friendly
 * make internal page to check the status of the battle

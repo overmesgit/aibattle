@@ -1,4 +1,4 @@
-FROM golang:1.23 AS build-backend
+FROM golang:1.24 AS build-backend
 
 RUN mkdir /app
 ADD . /app

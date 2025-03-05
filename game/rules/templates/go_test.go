@@ -84,9 +84,6 @@ func PlayTurn(inputJSON []byte) ([]byte, error) {
 	return json.Marshal(response)
 }
 
-// implementation of GetTurnActions(input NextTurnInput) ActionResponse
-<generated>
-
 func HandleTurn(w http.ResponseWriter, r *http.Request) {
 	var request NextTurnInput
 	decoder := json.NewDecoder(r.Body)
