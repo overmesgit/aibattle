@@ -99,9 +99,9 @@ func RunGame(
 
 				result.Turns = append(result.Turns, actionLog)
 				prevAction = act.Action
+				gameState.RemoveDeadUnits()
 			}
 		}
-		gameState.RemoveDeadUnits()
 	}
 	return result, nil
 }

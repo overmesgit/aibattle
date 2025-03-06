@@ -134,7 +134,7 @@ func getNextPrompt(
 	err := app.RecordQuery("prompt").
 		Join("LEFT JOIN", "score", dbx.NewExp("score.user = prompt.user")).
 		AndWhere(dbx.HashExp{"prompt.active": true}).
-		AndWhere(dbx.Not(dbx.HashExp{"prompt.id": nextPromptID})).
+		OrWhere(dbx.HashExp{"prompt.id": nextPromptID}).
 		OrderBy("score.updated ASC").
 		Limit(5).
 		All(&records)
@@ -143,22 +143,23 @@ func getNextPrompt(
 		return nil, nil, fmt.Errorf("error fetching active prompts: %w", err)
 	}
 
-	// get 5 records, shuffle them and get top 2
-	records = lo.Shuffle(records)
 	// Need at least 2 prompts for battle
 	if len(records) < 2 {
 		return nil, nil, errors.New("not enough records")
 	}
-	prompt1, prompt2 := records[0], records[1]
 
-	if nextPromptID != "" {
-		nextPrompt, err := app.FindRecordById("prompt", nextPromptID)
-		if err != nil {
-			return nil, nil, fmt.Errorf("error finding nextPrompt: %w", err)
-		}
-		return prompt1, nextPrompt, nil
+	nextPrompts, records := lo.FilterReject(
+		records, func(r *core.Record, _ int) bool {
+			return r.Id == nextPromptID
+		},
+	)
+
+	// get 5 records, shuffle them and get top 2
+	records = lo.Shuffle(records)
+	if len(nextPrompts) > 0 {
+		records = lo.Shuffle([]*core.Record{nextPrompts[0], records[0]})
 	}
-	return prompt1, prompt2, nil
+	return records[0], records[1], nil
 }
 
 func updateUserScores(
