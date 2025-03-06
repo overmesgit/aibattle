@@ -88,13 +88,6 @@
           <script>
               let defaultPrompt = document.getElementById("default-prompt")
               let langElement = document.getElementsByName('language');
-              langElement[0].onchange = function (e) {
-                  if (e.target.value === "go") {
-                      defaultPrompt.textContent = "{{.DefaultPrompts.go}}"
-                  } else {
-                      defaultPrompt.textContent = "{{.DefaultPrompts.py}}"
-                  }
-              }
           </script>
 
           <label class="label">

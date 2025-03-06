@@ -38,7 +38,7 @@ func GetBattleResult(
 func PrepareTeams(team1Text, team2Text string) (func(
 	int, world.GameState, int, string,
 ) (world.UnitAction, error), error) {
-	team1FullProg, err := builder.AddGeneratedCodeToTheGameTemplate(team1Text, rules.LangJS)
+	team1FullProg, err := rules.AddGeneratedCodeToTheGameTemplate(team1Text, rules.LangJS)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func PrepareTeams(team1Text, team2Text string) (func(
 		return nil, fmt.Errorf("error preparing js function: %w", err)
 	}
 
-	team2FullProg, err := builder.AddGeneratedCodeToTheGameTemplate(team2Text, rules.LangJS)
+	team2FullProg, err := rules.AddGeneratedCodeToTheGameTemplate(team2Text, rules.LangJS)
 	if err != nil {
 		return nil, err
 	}

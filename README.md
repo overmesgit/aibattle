@@ -2,6 +2,7 @@
 
 * deploy only gcp run
 * remove old environment
+* embeded rules template files
 
 ## Ideas
 

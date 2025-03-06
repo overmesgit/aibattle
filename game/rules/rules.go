@@ -3,9 +3,11 @@ package rules
 import (
 	"aibattle/game/world"
 	"bytes"
+	"embed"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"text/template"
 
@@ -23,9 +25,11 @@ var AvailableLanguages = []string{LangJS}
 func GetGameDescription(language string) (string, error) {
 	state := world.GetInitialGameState()
 	var unitsDescription strings.Builder
-	uniqueUnits := lo.Filter(state.Units, func(unit *world.Unit, index int) bool {
-		return index%2 == 0
-	})
+	uniqueUnits := lo.Filter(
+		state.Units, func(unit *world.Unit, index int) bool {
+			return index%2 == 0
+		},
+	)
 	for _, unit := range uniqueUnits {
 		unitActions := state.UnitActionMap[unit.Type]
 		actions := printActions(unitActions)
@@ -84,28 +88,40 @@ func GetGameDescription(language string) (string, error) {
 	return buf.String(), nil
 }
 
+//go:embed templates/py.py templates/go_test.go templates/js.js
+var templateFS embed.FS
+
 func getLanguageTemplate(language string) (string, error) {
-	languageTemplate := ""
+	var templatePath string
 	switch language {
 	case LangPy:
-		languageTemplate = "game/rules/templates/py.py"
+		templatePath = "templates/py.py"
 	case LangGo:
-		languageTemplate = "game/rules/templates/go_test.go"
+		templatePath = "templates/go_test.go"
 	case LangJS:
-		languageTemplate = "game/rules/templates/js.js"
+		templatePath = "templates/js.js"
 	default:
 		return "", errors.New("unknown language")
 	}
 
-	langTemplate, langErr := template.ParseFiles(languageTemplate)
-	if langErr != nil {
-		return "", langErr
+	// Read the template content from the embedded file system
+	templateContent, err := templateFS.ReadFile(templatePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read template file: %w", err)
 	}
-	var langBuf bytes.Buffer
-	if err := langTemplate.Execute(&langBuf, nil); err != nil {
+
+	// Parse and execute the template
+	templateString := string(templateContent)
+	log.Printf("Language template length: %d", len(templateString))
+	return templateString, nil
+}
+
+func AddGeneratedCodeToTheGameTemplate(generatedProg string, language string) (string, error) {
+	languageTemplate, err := getLanguageTemplate(language)
+	if err != nil {
 		return "", err
 	}
-	return langBuf.String(), nil
+	return languageTemplate + generatedProg, nil
 }
 
 func printActions(actions world.ActionMap) string {

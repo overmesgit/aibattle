@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/anthropics/anthropic-sdk-go"
@@ -25,7 +24,7 @@ func GetProgram(
 	}
 
 	// Get the generated code
-	generatedCode, err := AddGeneratedCodeToTheGameTemplate(text, language)
+	generatedCode, err := rules.AddGeneratedCodeToTheGameTemplate(text, language)
 	if err != nil {
 		return text, err
 	}
@@ -91,27 +90,6 @@ func GetProgramWithPrompt(
 		return "", err
 	}
 	return text, nil
-}
-
-func AddGeneratedCodeToTheGameTemplate(generatedProg string, language string) (string, error) {
-	mainTemplate := ""
-	switch language {
-	case rules.LangGo:
-		mainTemplate = "game/rules/templates/go_test.go"
-	case rules.LangPy:
-		mainTemplate = "game/rules/templates/py.py"
-	case rules.LangJS:
-		mainTemplate = "game/rules/templates/js.js"
-	}
-	tfile, err := os.ReadFile(mainTemplate)
-	if err != nil {
-		return "", err
-	}
-
-	strContent := string(tfile)
-	// Replace <generated> with provided text
-	template := strContent + generatedProg
-	return template, nil
 }
 
 func getContentBetweenTags(content, startTag, endTag string) (string, error) {
