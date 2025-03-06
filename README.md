@@ -1,8 +1,7 @@
 ## TODO
 
-* deploy only gcp run
 * remove old environment
-* embeded rules template files
+* add domain https://cloud.google.com/run/docs/mapping-custom-domains
 
 ## Ideas
 

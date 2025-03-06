@@ -38,18 +38,18 @@ func GetProgram(
 func RunGOJACodeTest(generatedCode string) error {
 	gameState := world.GetInitialGameState()
 
-	getNextAction, err := GetGOJAFunction(generatedCode)
+	runner, err := NewGOJARunner(generatedCode)
 	if err != nil {
 		log.Printf("Error preparing js function: %v", err)
 		return fmt.Errorf("error preparing js function: %w", err)
 	}
 
-	action, err := getNextAction(
+	action, err := runner.GetNextAction(
 		gameState, 1, "FirstAction",
 	)
 	if err != nil {
-		log.Printf("Error calling getNextAction: %v", err)
-		return fmt.Errorf("error calling getNextAction: %w", err)
+		log.Printf("Error calling runner: %v", err)
+		return fmt.Errorf("error calling runner: %w", err)
 	}
 	log.Printf(
 		"Successfully tested the generated code. Parsed action: %+v %+v", action, action.Target,

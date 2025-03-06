@@ -74,6 +74,7 @@ func RunGame(
 
 		for _, unit := range gameState.Units {
 			if !unit.IsAlive() {
+				log.Printf("unit is dead %d", unit.ID)
 				continue
 			}
 
@@ -82,18 +83,20 @@ func RunGame(
 				actionLog := result.NewActionLog(turn, unit.ID)
 
 				act, actionErr := nextAction(unit.Team, gameState, unit.ID, actIndex)
-				// log.Printf("next action %v %+v %+v %v", unit.ID, act, act.Target, actionErr)
+				log.Printf("next action %v %+v %+v %v", unit.ID, act, act.Target, actionErr)
 				if actionErr != nil {
+					log.Printf("action error %s", actionErr)
 					actionLog.Errors = append(actionLog.Errors, actionErr.Error())
-					continue
+				} else {
+					updatedUnits, err := gameState.UpdateGameState(unit, act, prevAction)
+					if err != nil {
+						log.Printf("update error %s", err)
+						actionLog.Errors = append(actionLog.Errors, err.Error())
+					}
+					actionLog.UnitAction = act
+					actionLog.UnitsAfter = gameState.GetUnitsByIDs(updatedUnits)
 				}
-				updatedUnits, err := gameState.UpdateGameState(unit, act, prevAction)
-				if err != nil {
-					actionLog.Errors = append(actionLog.Errors, err.Error())
-					log.Println(err)
-				}
-				actionLog.UnitAction = act
-				actionLog.UnitsAfter = gameState.GetUnitsByIDs(updatedUnits)
+
 				result.Turns = append(result.Turns, actionLog)
 				prevAction = act.Action
 			}
