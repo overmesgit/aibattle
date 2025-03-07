@@ -1,9 +1,19 @@
+/**
+ * Gets the unit with the given ID from the game state
+ * @param {Object} gameState - Current game state
+ * @param {number} currentUnitID - ID of the unit to find
+ * @returns {Object|null} - The found unit or null
+ */
 function getCurrentUnit(gameState, currentUnitID) {
-  if (!gameState || !gameState.units) return null;
-
-  return gameState.units.find((unit) => unit.id === currentUnitID) || null;
+  return gameState?.units?.find((unit) => unit.id === currentUnitID) ?? null;
 }
 
+/**
+ * Gets all friendly units from the same team as the current unit
+ * @param {Object} gameState - Current game state
+ * @param {number} currentUnitID - ID of the current unit
+ * @returns {Array} - Array of friendly units
+ */
 function getFriendlyUnits(gameState, currentUnitID) {
   const currentUnit = getCurrentUnit(gameState, currentUnitID);
   if (!currentUnit) return [];
@@ -13,6 +23,12 @@ function getFriendlyUnits(gameState, currentUnitID) {
   );
 }
 
+/**
+ * Gets all enemy units (units not on the same team as the current unit)
+ * @param {Object} gameState - Current game state
+ * @param {number} currentUnitID - ID of the current unit
+ * @returns {Array} - Array of enemy units
+ */
 function getEnemyUnits(gameState, currentUnitID) {
   const currentUnit = getCurrentUnit(gameState, currentUnitID);
   if (!currentUnit) return [];
@@ -20,58 +36,65 @@ function getEnemyUnits(gameState, currentUnitID) {
   return gameState.units.filter((unit) => unit.team !== currentUnit.team);
 }
 
+/**
+ * Calculates the Euclidean distance between two points
+ * @param {Object} point1 - First point {x, y}
+ * @param {Object} point2 - Second point {x, y}
+ * @returns {number} - The distance between the points
+ */
 function calculateEuclideanDistance(point1, point2) {
-  return Math.sqrt(
-    Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2),
-  );
+  const dx = point1.x - point2.x;
+  const dy = point1.y - point2.y;
+  return Math.hypot(dx, dy); // Using hypot for better numerical stability
 }
 
+/**
+ * Gets the available actions for a unit type
+ * @param {Object} gameState - Current game state
+ * @param {string} unitType - Type of the unit
+ * @returns {Object} - Map of available actions
+ */
 function getAvailableActions(gameState, unitType) {
-  if (
-    !gameState ||
-    !gameState.unit_action_map ||
-    !gameState.unit_action_map[unitType]
-  ) {
-    return {};
-  }
-
-  return gameState.unit_action_map[unitType];
+  return gameState?.unit_action_map?.[unitType] ?? {};
 }
 
+/**
+ * Finds the nearest enemy to a unit
+ * @param {Object} currentUnit - Current unit
+ * @param {Array} enemyUnits - Array of enemy units
+ * @returns {Object|null} - The nearest enemy or null
+ */
 function findNearestEnemy(currentUnit, enemyUnits) {
-  if (!enemyUnits || enemyUnits.length === 0) return null;
+  if (!enemyUnits?.length) return null;
 
-  let nearestEnemy = enemyUnits[0];
-  let minDistance = calculateEuclideanDistance(
-    currentUnit.position,
-    nearestEnemy.position,
+  return (
+    enemyUnits.reduce((nearest, enemy) => {
+      const distance = calculateEuclideanDistance(
+        currentUnit.position,
+        enemy.position,
+      );
+
+      if (!nearest || distance < nearest.distance) {
+        return { unit: enemy, distance };
+      }
+      return nearest;
+    }, null)?.unit ?? null
   );
-
-  for (let i = 1; i < enemyUnits.length; i++) {
-    const distance = calculateEuclideanDistance(
-      currentUnit.position,
-      enemyUnits[i].position,
-    );
-    if (distance < minDistance) {
-      minDistance = distance;
-      nearestEnemy = enemyUnits[i];
-    }
-  }
-
-  return nearestEnemy;
 }
 
+/**
+ * Checks if a unit can attack a target with a specific attack type
+ * @param {Object} gameState - Current game state
+ * @param {Object} attacker - Attacking unit
+ * @param {Object} target - Target unit
+ * @param {string} attackType - Type of attack
+ * @returns {boolean} - Whether the attack is possible
+ */
 function canAttack(gameState, attacker, target, attackType) {
-  const unitActions = getAvailableActions(gameState, attacker.type);
-  if (
-    !unitActions ||
-    !unitActions[attackType] ||
-    !unitActions[attackType].range
-  ) {
-    return false;
-  }
+  const range =
+    gameState?.unit_action_map?.[attacker.type]?.[attackType]?.range;
+  if (!range) return false;
 
-  const range = unitActions[attackType].range;
   const distance = calculateEuclideanDistance(
     attacker.position,
     target.position,
@@ -80,23 +103,28 @@ function canAttack(gameState, attacker, target, attackType) {
   return distance <= range;
 }
 
-function MinHeap() {
-  this.heap = [];
+/**
+ * Priority queue implementation using a binary min heap
+ */
+class MinHeap {
+  constructor() {
+    this.heap = [];
+  }
 
-  this.empty = function () {
+  empty() {
     return this.heap.length === 0;
-  };
+  }
 
-  this.insert = function (item, priority) {
-    this.heap.push({ item: item, priority: priority });
+  insert(item, priority) {
+    this.heap.push({ item, priority });
     this.bubbleUp(this.heap.length - 1);
-  };
+  }
 
-  this.pop = function () {
+  pop() {
     if (this.empty()) return null;
 
-    var min = this.heap[0];
-    var end = this.heap.pop();
+    const min = this.heap[0];
+    const end = this.heap.pop();
 
     if (!this.empty()) {
       this.heap[0] = end;
@@ -104,14 +132,14 @@ function MinHeap() {
     }
 
     return min.item;
-  };
+  }
 
-  this.bubbleUp = function (idx) {
-    var item = this.heap[idx];
+  bubbleUp(idx) {
+    const item = this.heap[idx];
 
     while (idx > 0) {
-      var parentIdx = Math.floor((idx - 1) / 2);
-      var parent = this.heap[parentIdx];
+      const parentIdx = Math.floor((idx - 1) / 2);
+      const parent = this.heap[parentIdx];
 
       if (item.priority >= parent.priority) break;
 
@@ -119,21 +147,22 @@ function MinHeap() {
       this.heap[idx] = parent;
       idx = parentIdx;
     }
-  };
+  }
 
-  this.sinkDown = function (idx) {
-    var length = this.heap.length;
-    var item = this.heap[idx];
+  sinkDown(idx) {
+    const length = this.heap.length;
+    const item = this.heap[idx];
 
     while (true) {
-      var leftChildIdx = 2 * idx + 1;
-      var rightChildIdx = 2 * idx + 2;
-      var swapIdx = null;
+      const leftChildIdx = 2 * idx + 1;
+      const rightChildIdx = 2 * idx + 2;
+      let swapIdx = null;
 
-      if (leftChildIdx < length) {
-        if (this.heap[leftChildIdx].priority < item.priority) {
-          swapIdx = leftChildIdx;
-        }
+      if (
+        leftChildIdx < length &&
+        this.heap[leftChildIdx].priority < item.priority
+      ) {
+        swapIdx = leftChildIdx;
       }
 
       if (rightChildIdx < length) {
@@ -154,118 +183,123 @@ function MinHeap() {
       this.heap[swapIdx] = item;
       idx = swapIdx;
     }
-  };
+  }
 
-  this.contains = function (item, compareFunc) {
-    for (var i = 0; i < this.heap.length; i++) {
-      if (compareFunc(this.heap[i].item, item)) {
-        return true;
-      }
-    }
-    return false;
-  };
+  contains(item, compareFunc) {
+    return this.heap.some((node) => compareFunc(node.item, item));
+  }
 
-  this.update = function (item, priority, compareFunc) {
-    for (var i = 0; i < this.heap.length; i++) {
-      if (compareFunc(this.heap[i].item, item)) {
-        this.heap[i].priority = priority;
-        this.bubbleUp(i);
-        return;
-      }
+  update(item, priority, compareFunc) {
+    const idx = this.heap.findIndex((node) => compareFunc(node.item, item));
+    if (idx !== -1) {
+      this.heap[idx].priority = priority;
+      this.bubbleUp(idx);
     }
-  };
+  }
 }
 
+/**
+ * A* pathfinding algorithm implementation
+ * @param {Object} gameState - Current game state
+ * @param {Object} start - Starting position {x, y}
+ * @param {Object} goal - Goal position {x, y}
+ * @returns {Array|null} - Path to the goal or null if no path exists
+ */
 function aStar(gameState, start, goal) {
-  function posKey(p) {
-    return p.x + "," + p.y;
+  const posKey = (p) => `${p.x},${p.y}`;
+  const posEquals = (a, b) => a.x === b.x && a.y === b.y;
+  if (!isValidPosition(gameState, goal, true)) {
+    return null;
+  }
+  // Special case: start equals goal
+  if (posEquals(start, goal)) {
+    return [start];
   }
 
-  function euclideanDist(a, b) {
-    return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
-  }
+  const openSet = new MinHeap();
+  const closed = new Map();
+  const gScore = new Map();
+  const fScore = new Map();
+  const from = new Map();
 
-  function posEquals(a, b) {
-    return a.x === b.x && a.y === b.y;
-  }
+  const startKey = posKey(start);
+  gScore.set(startKey, 0);
+  fScore.set(startKey, calculateEuclideanDistance(start, goal));
+  openSet.insert(start, fScore.get(startKey));
 
-  var openSet = new MinHeap();
-  var closed = {};
-  var gScore = {};
-  var fScore = {};
-  var from = {};
-
-  var startKey = posKey(start);
-  gScore[startKey] = 0;
-  fScore[startKey] = euclideanDist(start, goal);
-  openSet.insert(start, fScore[startKey]);
-
-  // Directions: including diagonals
-  var dirs = [
+  const dirs = [
     [1, 0],
     [0, 1],
     [-1, 0],
     [0, -1],
   ];
 
-  while (!openSet.empty()) {
-    var current = openSet.pop();
-    var currentKey = posKey(current);
+  const getPath = (current, currentKey) => {
+    const path = [current];
+    let nodeKey = currentKey;
 
-    if (current.x === goal.x && current.y === goal.y) {
-      var path = [current];
-      var nodeKey = currentKey;
-
-      while (from[nodeKey]) {
-        path.unshift(from[nodeKey]);
-        nodeKey = posKey(from[nodeKey]);
-      }
-
-      return path;
+    while (from.has(nodeKey)) {
+      path.unshift(from.get(nodeKey));
+      nodeKey = posKey(from.get(nodeKey));
     }
 
-    closed[currentKey] = true;
+    return path;
+  };
 
-    for (var i = 0; i < dirs.length; i++) {
-      var dx = dirs[i][0],
-        dy = dirs[i][1];
-      var neighbor = { x: current.x + dx, y: current.y + dy };
-      var neighborKey = posKey(neighbor);
+  // Add iteration limit to prevent infinite loops
+  const maxIterations = 100;
+  let iterations = 0;
+  let current;
+  let currentKey;
+  while (!openSet.empty() && iterations < maxIterations) {
+    iterations++;
+    current = openSet.pop();
+    currentKey = posKey(current);
 
-      // Special case: if this is the goal position, we can ignore unit occupancy
-      var isGoalPosition = neighbor.x === goal.x && neighbor.y === goal.y;
+    // Goal reached
+    if (current.x === goal.x && current.y === goal.y) {
+      return getPath(current, currentKey);
+    }
 
-      // For non-goal positions, check normal validity; for goal position, only check map boundaries
-      var isPositionValid = isGoalPosition
-        ? neighbor.x >= 0 &&
-          neighbor.x < gameState.width &&
-          neighbor.y >= 0 &&
-          neighbor.y < gameState.height
-        : isValidPosition(gameState, neighbor);
+    closed.set(currentKey, true);
 
-      if (!isPositionValid || closed[neighborKey]) {
+    for (const [dx, dy] of dirs) {
+      const neighbor = { x: current.x + dx, y: current.y + dy };
+      const neighborKey = posKey(neighbor);
+
+      // Check if this is the goal position to handle special case
+      const isGoalPosition = neighbor.x === goal.x && neighbor.y === goal.y;
+
+      // For non-goal positions, check normal validity; for goal, only check map boundaries
+      const isPositionValid = isValidPosition(
+        gameState,
+        neighbor,
+        isGoalPosition,
+      );
+
+      if (!isPositionValid || closed.has(neighborKey)) {
         continue;
       }
 
-      // Cost is 1.0 for cardinal directions, sqrt(2) ≈ 1.414 for diagonals
-      var moveCost = dx === 0 || dy === 0 ? 1.0 : Math.SQRT2;
-      var tentativeG = gScore[currentKey] + moveCost;
+      // Uniform cost for cardinal directions
+      const tentativeG = gScore.get(currentKey) + 1;
 
-      if (tentativeG < (gScore[neighborKey] || Infinity)) {
-        from[neighborKey] = current;
-        gScore[neighborKey] = tentativeG;
-        fScore[neighborKey] = tentativeG + euclideanDist(neighbor, goal);
+      if (tentativeG < (gScore.get(neighborKey) ?? Infinity)) {
+        from.set(neighborKey, current);
+        gScore.set(neighborKey, tentativeG);
+        const f = tentativeG + calculateEuclideanDistance(neighbor, goal);
+        fScore.set(neighborKey, f);
 
         if (openSet.contains(neighbor, posEquals)) {
-          openSet.update(neighbor, fScore[neighborKey], posEquals);
+          openSet.update(neighbor, f, posEquals);
         } else {
-          openSet.insert(neighbor, fScore[neighborKey]);
+          openSet.insert(neighbor, f);
         }
       }
     }
   }
 
-  return null;
+  return getPath(current, currentKey);
 }
 
 /**
@@ -276,31 +310,38 @@ function aStar(gameState, start, goal) {
  * @returns {Object|null} - Best move position or null if no move possible
  */
 function getMovePositionToward(gameState, currentUnit, targetPosition) {
-  var actions = getAvailableActions(gameState, currentUnit.type);
-  var path = aStar(gameState, currentUnit.position, targetPosition);
-  if (!path || path.length === 0) {
-    return null;
-  }
+  const actions = getAvailableActions(gameState, currentUnit.type);
+  const path = aStar(gameState, currentUnit.position, targetPosition);
 
-  var nextPosition = path[0];
-  for (var i = 0; i < path.length; i++) {
-    if (
-      calculateEuclideanDistance(currentUnit.position, path[i]) <
-      actions.move.distance
-    ) {
-      nextPosition = path[i];
+  if (!path?.length) return null;
+
+  const moveDistance = actions.move?.distance ?? 0;
+  let furthestReachable = null;
+
+  // Find the furthest position within movement range
+  for (let i = 0; i < path.length; i++) {
+    const distance = calculateEuclideanDistance(currentUnit.position, path[i]);
+    if (distance <= moveDistance) {
+      furthestReachable = path[i];
     } else {
-      return nextPosition;
+      break;
     }
   }
 
-  return null;
+  return furthestReachable;
 }
 
-function isValidPosition(gameState, position) {
+/**
+ * Checks if a position is valid (within map bounds and not occupied)
+ * @param {Object} gameState - Current game state
+ * @param {Object} position - Position to check {x, y}
+ * @param allowOccupied - allowed position to be occupied by other unit
+ * @returns {boolean} - Whether the position is valid
+ */
+function isValidPosition(gameState, position, allowOccupied = false) {
   if (!gameState) return false;
 
-  // Check if position is within map boundaries
+  // Check map boundaries
   if (
     position.x < 0 ||
     position.x >= gameState.width ||
@@ -310,23 +351,18 @@ function isValidPosition(gameState, position) {
     return false;
   }
 
-  // Check if position is already occupied by any unit
-  if (gameState.units) {
-    for (let i = 0; i < gameState.units.length; i++) {
-      const unit = gameState.units[i];
-      if (unit.position.x === position.x && unit.position.y === position.y) {
-        return false;
-      }
-    }
-  }
+  if (allowOccupied) return true;
 
-  return true;
+  // Check unit occupancy
+  return !gameState.units?.some(
+    (unit) => unit.position.x === position.x && unit.position.y === position.y,
+  );
 }
 
 /**
  You must implement function GetTurnActions(gameState, currentUnitID, actionIndex) at generated tag
- You can only use js code that can be run in github.com/dop251/goja
- Goja is an implementation of ECMAScript 5.1 in pure Go with emphasis on standard compliance and performance.
+ You can only use js code that can be run in QuickJS.
+ QuickJS supports the ES2023 specification
 
  * Determines the next action for a unit based on the game state and action index
  * @param {Object} gameState - The current game state containing map, units, and rules

@@ -28,17 +28,17 @@ func GetProgram(
 	if err != nil {
 		return text, err
 	}
-	err = RunGOJACodeTest(generatedCode)
+	err = RunCodeTest(generatedCode)
 	if err != nil {
 		return text, err
 	}
 	return text, nil
 }
 
-func RunGOJACodeTest(generatedCode string) error {
+func RunCodeTest(generatedCode string) error {
 	gameState := world.GetInitialGameState()
 
-	runner, err := NewGOJARunner(generatedCode)
+	runner, err := NewQuickJSRunner(generatedCode)
 	if err != nil {
 		log.Printf("Error preparing js function: %v", err)
 		return fmt.Errorf("error preparing js function: %w", err)

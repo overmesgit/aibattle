@@ -1,7 +1,6 @@
 ## TODO
 
 * remove old environment
-* add domain https://cloud.google.com/run/docs/mapping-custom-domains
 
 ## Ideas
 
@@ -17,7 +16,7 @@
 * program memory and cpu limits
 * match making depending on the score
 * disable prompt update if it is in processing
-
+* find domain name
 * add another apis (Gemini)
 * update leader board in realtime
 * update prompt status in real time

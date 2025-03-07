@@ -36,8 +36,8 @@ func GetBattleResult(
 }
 
 type Match struct {
-	teamOne builder.GOJARunner
-	teamTwo builder.GOJARunner
+	teamOne builder.QuickJSRunner
+	teamTwo builder.QuickJSRunner
 }
 
 func NewMatch(team1Text, team2Text string) (Match, error) {
@@ -45,7 +45,7 @@ func NewMatch(team1Text, team2Text string) (Match, error) {
 	if err != nil {
 		return Match{}, err
 	}
-	team1Action, err := builder.NewGOJARunner(team1FullProg)
+	team1Action, err := builder.NewQuickJSRunner(team1FullProg)
 	if err != nil {
 		return Match{}, fmt.Errorf("error preparing js function: %w", err)
 	}
@@ -54,7 +54,7 @@ func NewMatch(team1Text, team2Text string) (Match, error) {
 	if err != nil {
 		return Match{}, err
 	}
-	team2Action, err := builder.NewGOJARunner(team2FullProg)
+	team2Action, err := builder.NewQuickJSRunner(team2FullProg)
 	if err != nil {
 		return Match{}, fmt.Errorf("error preparing js function: %w", err)
 	}
@@ -68,7 +68,7 @@ func NewMatch(team1Text, team2Text string) (Match, error) {
 func (m Match) GetTeamNextAction(
 	team int, state world.GameState, unitID int, actionIndex string,
 ) (world.UnitAction, error) {
-	var runner builder.GOJARunner
+	var runner builder.QuickJSRunner
 	switch team {
 	case world.TeamA:
 		runner = m.teamOne

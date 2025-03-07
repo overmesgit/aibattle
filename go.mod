@@ -5,11 +5,12 @@ go 1.23.3
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/anthropics/anthropic-sdk-go v0.2.0-alpha.8
+	github.com/buke/quickjs-go v0.4.15
 	github.com/dop251/goja v0.0.0-20241009100908-5f46f2705ca3
 	github.com/pocketbase/dbx v1.10.1
 	github.com/pocketbase/pocketbase v0.23.4
 	github.com/samber/lo v1.47.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
@@ -61,6 +62,8 @@ require (
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
