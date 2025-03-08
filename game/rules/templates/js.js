@@ -316,19 +316,26 @@ function getMovePositionToward(gameState, currentUnit, targetPosition) {
   if (!path?.length) return null;
 
   const moveDistance = actions.move?.distance ?? 0;
-  let furthestReachable = null;
 
   // Find the furthest position within movement range
+  let lastReachableIndex = -1;
   for (let i = 0; i < path.length; i++) {
     const distance = calculateEuclideanDistance(currentUnit.position, path[i]);
     if (distance <= moveDistance) {
-      furthestReachable = path[i];
+      lastReachableIndex = i;
     } else {
       break;
     }
   }
-
-  return furthestReachable;
+  // if target position is unit, we need to get the closest position
+  if (isValidPosition(gameState, path[lastReachableIndex])) {
+    return path[lastReachableIndex];
+  } else {
+    if (lastReachableIndex > 1) {
+      return path[lastReachableIndex - 1];
+    }
+    return null;
+  }
 }
 
 /**
@@ -339,7 +346,7 @@ function getMovePositionToward(gameState, currentUnit, targetPosition) {
  * @returns {boolean} - Whether the position is valid
  */
 function isValidPosition(gameState, position, allowOccupied = false) {
-  if (!gameState) return false;
+  if (!gameState || !position) return false;
 
   // Check map boundaries
   if (
@@ -357,6 +364,22 @@ function isValidPosition(gameState, position, allowOccupied = false) {
   return !gameState.units?.some(
     (unit) => unit.position.x === position.x && unit.position.y === position.y,
   );
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    getCurrentUnit,
+    getFriendlyUnits,
+    getEnemyUnits,
+    calculateEuclideanDistance,
+    getAvailableActions,
+    findNearestEnemy,
+    canAttack,
+    MinHeap,
+    aStar,
+    getMovePositionToward,
+    isValidPosition,
+  };
 }
 
 /**

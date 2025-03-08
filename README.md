@@ -1,7 +1,5 @@
 ## TODO
 
-* remove old environment
-
 ## Ideas
 
 * send previous actions to the function

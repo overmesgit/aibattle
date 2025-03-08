@@ -15,11 +15,10 @@ type QuickJSRunner struct {
 func NewQuickJSRunner(generatedCode string) (QuickJSRunner, error) {
 	// Create a new QuickJS runtime and context
 	runtime := quickjs.NewRuntime(
-		quickjs.WithExecuteTimeout(30),
-		quickjs.WithMemoryLimit(1*1024*1024),
+		quickjs.WithExecuteTimeout(3),
+		quickjs.WithMemoryLimit(5*1024*1024),
 		quickjs.WithGCThreshold(256*1024),
 		quickjs.WithMaxStackSize(65534),
-		quickjs.WithCanBlock(true),
 	)
 	ctx := runtime.NewContext()
 

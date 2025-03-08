@@ -1,3 +1,15 @@
 {
-  "type": "module"
+  "name": "tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "js.test.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ava": "^6.2.0"
+  }
 }
