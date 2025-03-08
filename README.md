@@ -3,15 +3,11 @@
 ## Ideas
 
 * send previous actions to the function
-* time limits for goja
-* run template test in goja
 * new game view
 * mobile friendly
 * make internal page to check the status of the battle
-* cache go templates with env variable flag
 * battle time to local time
 * add number of matches on leaderboard
-* program memory and cpu limits
 * match making depending on the score
 * disable prompt update if it is in processing
 * find domain name
@@ -25,4 +21,3 @@
 
 ## Share
 
-Anthropic discord

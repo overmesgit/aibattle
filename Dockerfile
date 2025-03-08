@@ -4,9 +4,9 @@ RUN mkdir /app
 ADD . /app
 WORKDIR /app
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+RUN GOOS=linux go build -o main .
 
-FROM alpine:latest AS production
+FROM gcr.io/distroless/base-debian12
 COPY --from=build-backend /app .
 EXPOSE 8080
 CMD ["./main", "serve", "--http=0.0.0.0:8080", "--dir=/cloud/storage/pb_data"]
