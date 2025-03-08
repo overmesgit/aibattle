@@ -1,6 +1,22 @@
 {{template "layout.gohtml" .}}
 {{define "title"}}Battle viewer{{end}}
-{{define "head"}}{{end}}
+{{define "head"}}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    @media (max-width: 768px) {
+      #battle {
+        width: 100%;
+        padding: 0 10px;
+      }
+    }
+    @media (min-width: 769px) {
+      #battle {
+        width: auto;
+        max-width: 90vw;
+      }
+    }
+  </style>
+{{end}}
 {{define "content"}}
   <script type="module">
     // Ensure proper JSON parsing by using the template's raw output
@@ -9,7 +25,7 @@
   </script>
   <script type="module" src="/dist/battle_viewer/index.js"></script>
 
-  <div class="min-h-screen flex justify-center bg-base-200">
-    <div id="battle"></div>
+  <div class="min-h-screen flex justify-center items-center bg-base-200 w-full px-2 sm:px-4">
+    <div id="battle" class="w-full max-w-full overflow-x-auto"></div>
   </div>
 {{end}}

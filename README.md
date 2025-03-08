@@ -2,6 +2,7 @@
 
 ## Ideas
 
+* adding cron for matches
 * send previous actions to the function
 * new game view
 * mobile friendly
@@ -18,6 +19,7 @@
 * pagination for battles
 * better goroutines
 * rebuild games if game rules were updated
+* add ai bot that will try to create a better team
 
 ## Share
 

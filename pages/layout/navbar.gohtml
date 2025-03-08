@@ -1,21 +1,39 @@
 {{define "navbar"}}
-  <div class="navbar bg-base-100 flex">
-    <div class="flex-none">
-      <a href="/" class="btn btn-ghost normal-case text-xl">Prompt battle</a>
+  <div class="navbar bg-base-100">
+    <div class="navbar-start">
+      <div class="dropdown">
+        <label tabindex="0" class="btn btn-ghost lg:hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
+        </label>
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+          <li><a href="/leader">Leader Board</a></li>
+          <li><a href="/prompt">Prompts</a></li>
+          <li><a href="/battle">Battles</a></li>
+          {{if .User }}
+            <li><a href="/logout">Logout</a></li>
+          {{else}}
+            <li><a href="/login">Login</a></li>
+            <li><a href="/signup">Sign Up</a></li>
+          {{end}}
+        </ul>
+      </div>
+      <a href="/" class="btn btn-ghost normal-case text-xl">AI Battle Arena</a>
     </div>
-    <div class="grow">
-      <a href="/leader" class="btn btn-neutral ml-2">Leader Board</a>
-      <a href="/prompt" class="btn btn-neutral ml-2">Prompts</a>
-      <a href="/battle" class="btn btn-neutral ml-2">Battles</a>
+    <div class="navbar-center hidden lg:flex">
+      <ul class="menu menu-horizontal px-1">
+        <li><a href="/leader" class="btn btn-neutral ml-2">Leader Board</a></li>
+        <li><a href="/prompt" class="btn btn-neutral ml-2">Prompts</a></li>
+        <li><a href="/battle" class="btn btn-neutral ml-2">Battles</a></li>
+      </ul>
     </div>
-    <div class="flex-none">
-        {{if .User }}
-          <span class="mr-4">{{.User.GetString "name"}}</span>
-          <a href="/logout" class="btn btn-info">Logout</a>
-        {{else}}
-          <a href="/login" class="btn btn-ghost">Login</a>
-          <a href="/signup" class="btn btn-primary">Sign Up</a>
-        {{end}}
+    <div class="navbar-end">
+      {{if .User }}
+        <span class="mr-4 hidden md:inline">{{.User.GetString "name"}}</span>
+        <a href="/logout" class="btn btn-info hidden sm:inline-flex">Logout</a>
+      {{else}}
+        <a href="/login" class="btn btn-ghost hidden sm:inline-flex">Login</a>
+        <a href="/signup" class="btn btn-primary hidden sm:inline-flex">Sign Up</a>
+      {{end}}
     </div>
   </div>
 {{end}}

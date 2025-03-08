@@ -2,21 +2,21 @@
 {{define "title"}}Leaderboard{{end}}
 {{define "head"}}{{end}}
 {{define "content"}}
-  <div class="flex justify-center bg-base-200 p-8">
-    <div class="bg-base-100 shadow-lg rounded-lg p-8 w-1/2">
-      <h2 class="text-2xl font-bold mb-6">Leaderboard</h2>
+  <div class="flex justify-center bg-base-200 p-4 sm:p-8">
+    <div class="bg-base-100 shadow-lg rounded-lg p-4 sm:p-8 w-full sm:w-4/5 md:w-3/4 lg:w-1/2">
+      <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Leaderboard</h2>
 
       <div class="overflow-x-auto">
         <ul class="list-none">
-          <li class="flex justify-between py-2 font-bold border-b">
+          <li class="flex justify-between py-2 font-bold border-b text-sm sm:text-base">
             <span class="w-1/4">Rank</span>
             <span class="w-1/2">Player</span>
             <span class="w-1/4 text-right">Score</span>
           </li>
             {{range $index, $score := .Scores}}
-              <li class="flex justify-between p-2 border-b {{if and $.User (eq $.User.Id $score.UserID)}}bg-blue-300{{end}}">
+              <li class="flex justify-between p-2 border-b text-sm sm:text-base {{if and $.User (eq $.User.Id $score.UserID)}}bg-blue-300{{end}}">
                 <span class="w-1/4">{{add $index 1}}</span>
-                <span class="w-1/2">{{$score.Username}}</span>
+                <span class="w-1/2 truncate">{{$score.Username}}</span>
                 <span class="w-1/4 text-right">{{printf "%.2f" $score.Score}}</span>
               </li>
             {{end}}

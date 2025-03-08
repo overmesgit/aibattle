@@ -3,55 +3,57 @@
 {{define "head"}}{{end}}
 {{define "content"}}
 
-  <div class="min-h-screen p-8 bg-base-200 flex">
-    <div class="container mx-auto w-1/2">
-      <div class="bg-base-100 rounded-lg shadow-xl p-6">
-        <h2 class="text-2xl font-bold mb-6">Your Battles</h2>
-        <form action="/battle/run" method="POST" class="mb-6">
+  <div class="min-h-screen p-4 sm:p-8 bg-base-200 flex">
+    <div class="container mx-auto w-full md:w-3/4 lg:w-2/3 xl:w-1/2">
+      <div class="bg-base-100 rounded-lg shadow-xl p-4 sm:p-6">
+        <h2 class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Your Battles</h2>
+        <form action="/battle/run" method="POST" class="mb-4 sm:mb-6">
           <button type="submit" class="btn btn-primary w-full">
             Run Battle Now
           </button>
         </form>
         {{if .Error}}
-          <div class="alert alert-error shadow-lg mb-6">
+          <div class="alert alert-error shadow-lg mb-4 sm:mb-6">
             <div>
-              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span>{{.Error}}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span class="text-sm sm:text-base">{{.Error}}</span>
             </div>
           </div>
         {{end}}
           {{- /*gotype: aibattle/pages/battle.ListData*/ -}}
           {{if .Battles}}
-            <div class="grid gap-4">
+            <div class="grid gap-3 sm:gap-4">
                 {{range .Battles}}
                   <a href="/battle/{{.ID}}"
-                     class="bg-base-200 p-4 rounded-lg hover:bg-base-300 transition duration-200">
-                    <div class="flex justify-between items-center">
+                     class="bg-base-200 p-3 sm:p-4 rounded-lg hover:bg-base-300 transition duration-200">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 sm:gap-0">
                       <div class="flex-1">
                         <div class="font-semibold">Battle vs
                           <span class="badge">{{.Opponent}}</span>
                         </div>
-                        <div class="text-sm text-base-content/70">Prompt id: {{.PromptID}}</div>
-                        <div class="text-sm text-base-content/70">{{.Date | date "2006-01-02 15:04:05"}} UTC</div>
+                        <div class="text-xs sm:text-sm text-base-content/70">Prompt id: {{.PromptID}}</div>
+                        <div class="text-xs sm:text-sm text-base-content/70">{{.Date | date "2006-01-02 15:04:05"}} UTC</div>
                       </div>
+                      <div class="flex flex-wrap gap-1">
                         {{if eq .Result "won"}}
-                          <div class="badge badge-primary badge-lg m-1">Won</div>
-                          <div class="badge badge-primary badge-lg m-1">Score:
+                          <div class="badge badge-primary badge-md sm:badge-lg m-0.5 sm:m-1">Won</div>
+                          <div class="badge badge-primary badge-md sm:badge-lg m-0.5 sm:m-1">Score:
                             {{.ScoreChange}}</div>
                         {{else if eq .Result "lost"}}
-                          <div class="badge badge-error badge-lg m-1">Lost</div>
-                          <div class="badge badge-error badge-lg m-1">Score: {{.ScoreChange}}</div>
+                          <div class="badge badge-error badge-md sm:badge-lg m-0.5 sm:m-1">Lost</div>
+                          <div class="badge badge-error badge-md sm:badge-lg m-0.5 sm:m-1">Score: {{.ScoreChange}}</div>
                         {{else if eq .Result "draw"}}
-                          <div class="badge badge-warning badge-lg m-1">Draw</div>
-                          <div class="badge badge-warning badge-lg m-1">
+                          <div class="badge badge-warning badge-md sm:badge-lg m-0.5 sm:m-1">Draw</div>
+                          <div class="badge badge-warning badge-md sm:badge-lg m-0.5 sm:m-1">
                             Score: {{.ScoreChange}}</div>
                         {{end}}
+                      </div>
                     </div>
                   </a>
                 {{end}}
             </div>
           {{else}}
-            <div class="text-center py-8 text-base-content/70">
+            <div class="text-center py-6 sm:py-8 text-base-content/70">
               No battles found
             </div>
           {{end}}
