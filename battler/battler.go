@@ -136,7 +136,6 @@ func getNextPrompt(
 		AndWhere(dbx.HashExp{"prompt.active": true}).
 		OrWhere(dbx.HashExp{"prompt.id": nextPromptID}).
 		OrderBy("score.updated ASC").
-		Limit(5).
 		All(&records)
 
 	if err != nil {
