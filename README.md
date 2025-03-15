@@ -1,5 +1,9 @@
 ## TODO
 
+* fix battler bug
+* fix sign up message about correct email
+* looks like path finding has a bug
+
 ## Ideas
 
 * adding cron for matches
